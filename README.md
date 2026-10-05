@@ -1,10 +1,10 @@
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/logo-dark.svg">
-    <source media="(prefers-color-scheme: light)" srcset=".github/assets/logo-light.svg">
-    <img src=".github/assets/logo-light.svg" alt="RASID Crisis Mapping" width="360">
-  </picture>
+  <img src=".github/assets/rasid-citizen.svg" alt="RASID citizen app" width="120">
+  &nbsp;&nbsp;&nbsp;
+  <img src=".github/assets/rasid-admin.svg" alt="RASID admin console" width="120">
 </p>
+
+<h1 align="center">RASID</h1>
 
 <p align="center"><b>Community-driven crisis mapping: residents report building damage, coordinators direct the response.</b></p>
 
