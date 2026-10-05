@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- API 31+ forces a system splash; transparent icon avoids a second "launcher tile"
+         splash before @drawable/splash, and blue background avoids a white flash. -->
+    <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
+        <item name="android:windowSplashScreenBackground">@color/splash_background</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_icon_transparent</item>
+        <item name="android:background">@drawable/splash</item>
+    </style>
+</resources>

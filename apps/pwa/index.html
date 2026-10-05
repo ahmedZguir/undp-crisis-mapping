@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#0468b1" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="RASID" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" sizes="any" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <title>RASID</title>
+    <script>
+      // Set data-theme before first paint to avoid a flash. Mirrors the
+      // resolution in src/lib/theme.ts: stored override wins, else light.
+      (function () {
+        try {
+          var stored = localStorage.getItem("rid-theme");
+          var theme = stored === "light" || stored === "dark" ? stored : "light";
+          document.documentElement.dataset.theme = theme;
+          if (theme === "dark") {
+            var meta = document.querySelector('meta[name="theme-color"]');
+            if (meta) meta.setAttribute("content", "#0a1220");
+          }
+          // Admin console gets a maroon identity (citizen app stays blue).
+          // Detect the entry path before first paint so the boot splash, tab
+          // icon and title all read "admin" with no blue flash. Mirrors the
+          // /admin check in src/App.tsx.
+          if (window.location.pathname.indexOf("/admin") === 0) {
+            document.documentElement.classList.add("admin-boot");
+            var fav = document.querySelector('link[rel="icon"][type="image/svg+xml"]');
+            if (fav) fav.setAttribute("href", "/favicon-admin.svg");
+            document.title = "RASID Admin";
+            if (theme !== "dark") {
+              var tc = document.querySelector('meta[name="theme-color"]');
+              if (tc) tc.setAttribute("content", "#9a1f33");
+            }
+          }
+        } catch (_) {}
+      })();
+    </script>
+    <style>
+      /* Boot splash — inline so it paints instantly, before any JS/CSS bundle. */
+      #boot-splash {
+        position: fixed;
+        inset: 0;
+        z-index: 2147483647;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(225deg, #10b4ef 0%, #1180c8 45%, #0a4aa6 100%);
+        flex-direction: column;
+        transition: opacity 0.3s ease;
+      }
+      #boot-splash span {
+        color: #fff;
+        font: 700 12vw/1 -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+        letter-spacing: 0.04em;
+      }
+      #boot-splash small {
+        display: none;
+        margin-top: 2.6vw;
+        color: rgba(255, 255, 255, 0.92);
+        font: 700 3vw/1 -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+        letter-spacing: 0.42em;
+        padding-left: 0.42em;
+      }
+      /* Admin boot identity: maroon gradient + ADMIN sublabel. Class is set on
+         <html> before first paint by the head script (citizen app never gets it). */
+      .admin-boot #boot-splash {
+        background: linear-gradient(225deg, #c0394e 0%, #9a1f33 45%, #5e0f1d 100%);
+      }
+      .admin-boot #boot-splash small {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Branded boot splash: covers the gap between the native launch screen
+         and the app's first paint so the hand-off is never a blank screen.
+         Removed by src/main.tsx once React has painted. Mirrors the native
+         splash (brand gradient + white RASID). -->
+    <div id="boot-splash">
+      <span>RASID</span>
+      <small>ADMIN</small>
+    </div>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

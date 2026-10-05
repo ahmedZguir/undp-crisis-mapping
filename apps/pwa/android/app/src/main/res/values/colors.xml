@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Android 12+ system splash can't do gradients; midtone of the brand gradient. -->
+    <color name="splash_background">#1180C8</color>
+</resources>

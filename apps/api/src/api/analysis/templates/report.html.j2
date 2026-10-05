@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>{{ crisis_display_name }} Situation Analysis</title>
+</head>
+<body>
+<div class="sheet">
+
+  {# masthead #}
+  <header class="masthead">
+    <div class="org">United Nations Development Programme · Rasid Crisis Mapping</div>
+    <h1>{{ crisis_display_name }} Situation Analysis</h1>
+    <div class="subtitle">Type: <b>{{ crisis_type }}</b> · Countries: <b>{{ countries }}</b></div>
+    <div class="metaline">
+      <span>Generated <b>{{ generated_label }}</b></span>
+      <span>Reporting window <b>{{ window }}</b></span>
+      <span>Source <b>Rasid, the UNDP community damage-reporting platform</b></span>
+    </div>
+  </header>
+
+  {# KPI strip #}
+  <div class="kpis">
+    <div class="kpi"><div class="v">{{ "{:,}".format(n_total) }}</div><div class="l">Reports</div></div>
+    <div class="kpi"><div class="v">{{ "{:,}".format(meta.reported_building_count) }}</div><div class="l">Buildings reported</div></div>
+    <div class="kpi">
+      <span class="mixbar">{{ kpi_mix_svg | safe }}</span>
+      <div class="l">{{ (severe_share * 100) | round | int }}% partial or complete damage</div>
+    </div>
+    <div class="kpi">
+      <div class="v" style="color:#c77c10">{% if debris_known %}{{ (100 * debris_yes / debris_known) | round | int }}%{% else %}n/a{% endif %}</div>
+      <div class="l">Debris-blocked (of {{ debris_known }} known)</div>
+    </div>
+    <div class="kpi"><div class="v">{{ "{:,}".format(n_infra) }}</div><div class="l">Critical-infra reports</div></div>
+    <div class="kpi"><div class="v">{{ "{:,}".format(meta.building_count) }}</div><div class="l">Buildings in area</div></div>
+  </div>
+
+  {# Part I #}
+  <div class="part"><span>I · Operational picture</span></div>
+
+  <div class="hero">
+    <figure>
+      <div class="fig-title">Where damage is reported (all {{ "{:,}".format(n_total) }} reports)</div>
+      <div class="mapbox">{{ hero_svg | safe }}</div>
+    </figure>
+    <div class="rail">
+      <figure>
+        <div class="fig-title">Reports per day, cumulative in blue</div>
+        {{ timeline_svg | safe }}
+        <figcaption>{{ timeline_status }}</figcaption>
+      </figure>
+      <figure>
+        <div class="fig-title">Infrastructure damage by type</div>
+        {{ infra_bars_svg | safe }}
+        <figcaption><b>Bold</b>: critical infra types.</figcaption>
+      </figure>
+      {% if debris_bars_svg %}
+      <figure>
+        <div class="fig-title">Where debris blocks access, top areas</div>
+        {{ debris_bars_svg | safe }}
+        <figcaption>Reports naming debris that blocks access, by area.</figcaption>
+      </figure>
+      {% endif %}
+    </div>
+  </div>
+
+  <section class="briefing">
+    <div class="sec-head"><h2>Bottom line &amp; recommended actions</h2></div>
+    <div class="briefing-grid">
+      <div class="bottomline">{{ narrative.bottom_line | nodash }}</div>
+      <ol class="actions">
+        {% for a in narrative.recommended_actions %}<li>{{ a | nodash }}</li>{% endfor %}
+      </ol>
+    </div>
+  </section>
+
+  <div class="caveat">This is a convenience sample, not a census. Reporting skews to connected,
+    powered and literate areas; only {{ "{:,}".format(meta.reported_building_count) }} of the
+    {{ "{:,}".format(meta.building_count) }} buildings in the area carry at least one report, and all
+    {{ "{:,}".format(n_total) }} reports come from {{ "{:,}".format(meta.device_count) }} reporting devices. Never assume an
+    unreported building is undamaged.</div>
+
+  {# damage geography #}
+  <section>
+    <div class="sec-head"><h2>Damage geography</h2><span class="kicker">Where is it severe, where is access blocked</span></div>
+    <div class="two-col">
+      <figure>
+        <div class="fig-title">Severe damage reports by area</div>
+        <div class="mapbox">{{ choropleth_svg | safe }}</div>
+        <div class="legend">
+          <span class="item"><span class="sw" style="background:#d8694a"></span>More severe reports</span>
+          <span class="item"><span class="sw" style="background:#aab8c4;border:1px solid #7d8c99"></span>Under 5 reports</span>
+        </div>
+      </figure>
+      <figure>
+        <div class="fig-title">Where debris blocks access</div>
+        <div class="mapbox">{{ debris_map_svg | safe }}</div>
+        <div class="legend">
+          <span class="item"><svg class="mk" viewBox="0 0 10 10" aria-hidden="true"><path d="M2.4 2.4L7.6 7.6M2.4 7.6L7.6 2.4" stroke="#b3261e" stroke-width="1.8" stroke-linecap="round"/></svg>Debris blocking access</span>
+          <span class="item"><span class="dot" style="background:#c3ccd4"></span>Other reports</span>
+        </div>
+      </figure>
+    </div>
+  </section>
+
+  {# infrastructure #}
+  <section>
+    <div class="sec-head"><h2>Infrastructure</h2><span class="kicker">Health, water and power first</span></div>
+    <figure>
+      <div class="fig-title">Damaged critical facilities, ordered by sector criticality</div>
+      {% if facilities %}
+      <table>
+        <thead><tr><th>Sector</th><th>Facility</th><th>Area</th><th class="num">Reports</th>
+          <th>Worst damage</th><th>Debris</th><th class="num">Location</th></tr></thead>
+        <tbody>
+          {% for f in facilities %}
+          <tr>
+            <td><b>{{ f.sector }}</b></td>
+            <td><b>{{ f.name }}</b></td>
+            <td>{{ f.district }}</td>
+            <td class="num">{{ f.n }}</td>
+            <td><span class="flag" style="background:{{ damage_color[f.damage] }};color:#fff">{{ f.damage }}</span></td>
+            <td>{{ f.debris }}</td>
+            <td class="num">{{ f.grid_ref }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <figcaption>Reports: how many separate reports name this facility.</figcaption>
+      {% else %}
+      <figcaption>No critical facility carries a damage report in this crisis yet.</figcaption>
+      {% endif %}
+    </figure>
+  </section>
+
+  {# priority areas #}
+  <section>
+    <div class="sec-head"><h2>Priority areas</h2><span class="kicker">Weighted score: reports, blocked access, severity</span></div>
+    {% if district_rows %}
+    <table>
+      <thead><tr>
+        <th class="num">#</th><th></th><th>Area</th><th class="num">Reports</th>
+        <th>Damage mix</th><th class="num">Debris %</th>
+        <th class="num">Infra hit<br><span style="font-weight:400;letter-spacing:0;text-transform:none">(reports)</span></th>
+        <th>Reports/day<br><span style="font-weight:400;letter-spacing:0;text-transform:none">{{ window }}</span></th>
+      </tr></thead>
+      <tbody>
+        {% for d in district_rows %}
+        <tr class="{{ 'top' if d.top else '' }}">
+          <td class="num">{{ d.rank }}</td>
+          <td>{{ d.locator_svg | safe }}</td>
+          <td><div class="dname">{{ d.name }}</div>{% for cls, lbl in d.flags %}<span class="flag {{ cls }}">{{ lbl }}</span>{% endfor %}</td>
+          <td class="num">{{ d.report_count }}</td>
+          <td>{{ d.mix_bar_svg | safe }}<br>
+            <span style="font-size:8px;color:#5b6b7a;font-family:var(--mono);font-variant-numeric:tabular-nums">{{ d.complete }}c / {{ d.partial }}p / {{ d.minimal }}m</span></td>
+          <td class="num">{{ d.debris_pct }}</td>
+          <td class="num">{{ d.services_hit }}</td>
+          <td>{{ d.sparkline_svg | safe }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <figcaption>Infra hit: reports naming a
+      critical infra facility with severe damage or debris.</figcaption>
+    {% if xtab.has_data %}
+    <div class="whylist">
+      <div class="fig-title" style="margin-top:10px">Which infrastructure is hit in the top 3 areas</div>
+      <table class="xtab">
+        <thead><tr><th class="num">#</th><th>Area</th>{% for t, lbl in xtab.col_labels %}<th class="num">{{ lbl }}</th>{% endfor %}</tr></thead>
+        <tbody>
+          {% for r in xtab.rows %}
+          <tr><td class="num">{{ r.rank }}</td><td><b>{{ r.name }}</b></td>{% for c in r.cells %}<td class="num" style="{% if c.shade %}background:rgba(4,104,177,{{ c.shade }}){% endif %}">{{ c.v }}</td>{% endfor %}</tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+    {% if community.districts %}
+    <div class="fig-title" style="margin-top:12px">What each top area is reporting <span class="ai-chip">Powered by AI</span></div>
+    <table class="dtheme">
+      <thead><tr>
+        {% for d in community.districts %}
+        <th><span class="rk">#{{ d.rank }}</span>{{ d.district_name }}</th>
+        {% endfor %}
+      </tr></thead>
+      <tbody>
+        <tr class="summary">
+          {% for d in community.districts %}
+          <td>{{ (d.write_up or "No summary available.") | nodash }}</td>
+          {% endfor %}
+        </tr>
+        <tr class="themerow">
+          {% for d in community.districts %}
+          <td>
+            {% if d.themes %}
+            <div class="theme-label">Recurring themes <span class="unit">number = reports</span></div>
+            <ul class="theme-list">
+              {% for t in d.themes %}<li><span class="tname">{{ t.label | nodash }}</span><span class="cnt">{{ t.count }}</span></li>{% endfor %}
+            </ul>
+            {% else %}
+            <span class="muted">No distinct themes.</span>
+            {% endif %}
+          </td>
+          {% endfor %}
+        </tr>
+      </tbody>
+    </table>
+    <figcaption>Themes are AI-grouped from a random sample of each area's reports; the count is the
+      number of sampled reports in that theme.</figcaption>
+    {% endif %}
+    {% else %}
+    <figcaption>No area cleared a reporting threshold for this crisis.</figcaption>
+    {% endif %}
+  </section>
+
+  {# Part II #}
+  <div class="part part-b"><span>II · Strategic summary</span><span class="sub">for HQ and donor reporting</span></div>
+
+  {# impact estimates #}
+  <section>
+    <div class="sec-head"><h2>Impact estimates</h2><span class="kicker">Ranges, not point figures</span></div>
+    <div class="donorline">An estimated <b>{{ "{:,}".format(impact.displaced_low) }}-{{ "{:,}".format(impact.displaced_high) }} people affected</b>
+      across {{ n_severe_districts }} severely affected areas{% if impact.economic_available %}, and
+      <b>{{ econ_low }}-{{ econ_high }} in building asset damage</b>{% else %}; economic-loss figure pending asset data{% endif %}.</div>
+    <div class="impact">
+      <div class="cell">
+        <div class="l">Estimated people affected</div>
+        <div class="v">{{ "{:,}".format(impact.displaced_low) }}-{{ "{:,}".format(impact.displaced_high) }}</div>
+        <div class="note">{% if impact.population_available %}Estimated from how many people live in the damaged
+          areas, scaled by how badly each building was hit. Population data comes from WorldPop.{% else %}Roughly
+          3 to 6 people per damaged building, used here because the WorldPop population grid is not loaded for
+          this area.{% endif %}</div>
+      </div>
+      <div class="cell">
+        <div class="l">Estimated economic damage</div>
+        {% if impact.economic_available %}<div class="v">{{ econ_low }}-{{ econ_high }}</div>{% else %}<div class="v pending">Pending data</div>{% endif %}
+        <div class="note">{% if impact.economic_available %}Asset value in each damaged area, shared across its
+          buildings, times how badly each was hit. Asset value data comes from LitPop.{% else %}LitPop
+          asset-value data is not loaded for this area, so no monetary figure is shown.{% endif %}</div>
+      </div>
+    </div>
+  </section>
+
+  {# hotspots & blind spots #}
+  <section class="keep">
+    <div class="sec-head"><h2>Hotspots &amp; possible blind spots</h2><span class="kicker">Where reports cluster, where silence is suspicious</span></div>
+    <div class="two-col">
+      <figure>
+        <div class="fig-title">Where reports concentrate ({{ h3_n }} hexagons)</div>
+        <div class="mapbox">{{ h3_svg | safe }}</div>
+        <div class="legend">
+          <span class="item"><span class="sw" style="background:{{ h3_lo }}"></span>Fewer reports</span>
+          <span class="item"><span class="sw" style="background:{{ h3_hi }}"></span>More reports</span>
+        </div>
+        <figcaption>Reports binned into roughly 7&nbsp;km hexagons; deeper red means more reports.
+          The darkest hexes are the cores of the event.</figcaption>
+      </figure>
+      <figure>
+        <div class="fig-title">Possible blind spots ({{ blind_n }} cells)</div>
+        <div class="mapbox">{{ blind_svg | safe }}</div>
+        <div class="legend">
+          <span class="item"><span class="dot" style="background:{{ undp_color }}"></span>Possible blind spot</span>
+        </div>
+        <figcaption>Blue circles flag possible blind spots: places with people and buildings, right next to
+          confirmed damage, that report far less than their neighbours do. They may be unreached or
+          offline rather than undamaged, so send recon and do not assume they are fine.{{ blind_note }}</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  {# community voice #}
+  <section>
+    <div class="sec-head"><h2>What communities are reporting <span class="ai-chip">Powered by AI</span></h2>
+      <span class="kicker">Sampled crisis-wide headline</span></div>
+    {% if community.headline and (headline_paragraphs or community.headline.themes) %}
+    {% for p in headline_paragraphs %}<p style="margin-bottom:6px">{{ p | nodash }}</p>{% endfor %}
+    {% if community.headline.themes %}
+    <div class="themes wide">
+      {% for t in community.headline.themes %}
+      <div class="theme"><div class="cnt">{{ t.count }} rpt</div>
+        <div><span class="tname">{{ t.label | nodash }}</span>
+          {% if t.quote %}<div class="tsum">&ldquo;{{ t.quote | nodash }}&rdquo;</div>{% endif %}</div></div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    <figcaption>AI-grouped themes from a random sample of
+      {{ "{:,}".format(community.headline.sampled) }} of
+      {{ "{:,}".format(community.headline.total) }} reports.{% if community.headline.other_count %}
+      {{ "{:,}".format(community.headline.other_count) }} sampled reports fall outside the themes shown.{% endif %}</figcaption>
+    {% else %}
+    <div class="caveat">No community summary is available for this crisis.</div>
+    {% endif %}
+  </section>
+
+  {# footer #}
+  <section>
+    <div class="colophon">
+      <span>{{ crisis_display_name }} · Situation Analysis · as of {{ as_of_label }}</span>
+      <span>Generated by Rasid, the UNDP Crisis Mapping platform · point-in-time artifact; data continues to change</span>
+    </div>
+  </section>
+
+</div>
+</body>
+</html>

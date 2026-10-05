@@ -1,0 +1,17 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  overscroll-behavior: none;
+}
+
+/* Prevents iOS Safari auto-zoom on input focus. */
+input,
+textarea,
+select {
+  font-size: max(16px, 1em);
+}

@@ -1,0 +1,56 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Node
+node_modules/
+dist/
+.vite/
+
+# Env / secrets — never commit ANY .env (keep *.env.example templates).
+infra/.env
+**/.env
+*.env
+!*.env.example
+!**/*.env.example
+# Machine-local PWA dev overrides (e.g. VITE_API_BASE_URL for device testing).
+apps/pwa/.env.local
+
+# Dev script runtime
+.pids/
+*.pid
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Supabase local
+supabase/.temp/
+supabase/.branches/
+
+# ignore skills (for memo)
+.agents/
+skills-lock.json
+.claude/
+.playwright-mcp/
+
+# ignore playground
+playground/
+
+# Supabase self-hosted RUNTIME DATA (not config) — the storage bucket (uploaded
+# photos) and any db data dir live under volumes/. Config files (kong.yml, db
+# init SQL, functions) stay tracked; only these data dirs are ignored.
+infra/supabase/volumes/storage/
+infra/supabase/volumes/db/data/
+infra/supabase/.env
+
+# Machine-local Compose overrides (e.g. deployment-specific bind mounts).
+infra/docker-compose.override.yml

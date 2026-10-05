@@ -1,0 +1,5798 @@
+/* Admin design system, scoped to .admin-root. */
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap");
+
+/* When the admin shell mounts, break #root out of the citizen-PWA phone frame
+   so the admin pages span the full viewport. */
+body.admin-mode #root {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  border: 0 !important;
+  min-height: 100vh;
+  text-align: start;
+}
+body.admin-mode {
+  overflow: hidden;
+}
+
+.admin-root {
+  /* Admin accent ramp. The citizen PWA owns blue; the console is maroon so the
+     two apps read as distinct. The `--c-blue-*` names are kept: they are the
+     admin accent, which happens to be maroon. */
+  --c-blue-900: #3d0b14;
+  --c-blue-800: #6a1422;
+  --c-blue-700: #9a1f33;
+  --c-blue-600: #b83346;
+  --c-blue-500: #cc5666;
+  --c-blue-400: #db8b96;
+  --c-blue-300: #e8b3bb;
+  --c-blue-200: #f3d4d9;
+  --c-blue-100: #f7e4e7;
+  --c-blue-50: #fbf3f4;
+
+  --c-safe: #2f7d4f;
+  --c-safe-bg: #e3efe6;
+  --c-warn: #a36a13;
+  --c-warn-bg: #f6e9cf;
+  --c-danger: #a02c25;
+  --c-danger-bg: #f2d3cf;
+
+  --c-ink: #0d1117;
+  --c-ink-2: #2c3540;
+  --c-ink-3: #5b6573;
+  --c-ink-4: #8e98a4;
+  --c-line: #e3e0d6;
+  --c-line-2: #efece3;
+  --c-bg: #f7f5ef;
+  --c-card: #ffffff;
+  --c-card-2: #fbfaf4;
+  --c-surface: #fbf3f4;
+  --c-rule-strong: #2b2f36;
+
+  --c-rail-w: 380px;
+
+  /* Damage palette: constant across light/dark so severity reads identically
+     on the map (which paints these exact hexes), charts and KPI ribbon. Do not
+     alias to the theme-flipping --c-danger/-warn/-safe. */
+  --sev-complete: #b1322a;
+  --sev-partial: #b87914;
+  --sev-minimal: #2f7d4f;
+  --sev-unknown: #9aa6b6;
+  /* AI / semantic accent (purple): distinguishes the semantic-search and
+     AI-assistant surfaces from the structured-filter blue. */
+  --ai: #5b40a6;
+  --ai-bg: #efeafb;
+
+  --shadow-1: 0 1px 2px rgba(20, 24, 36, 0.04), 0 1px 1px rgba(20, 24, 36, 0.06);
+  --shadow-2: 0 1px 3px rgba(20, 24, 36, 0.06), 0 6px 18px rgba(20, 24, 36, 0.08);
+
+  --font-sans: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  font-family: var(--font-sans);
+  color: var(--c-ink);
+  background: var(--c-bg);
+  -webkit-font-smoothing: antialiased;
+  letter-spacing: -0.005em;
+  font-size: 15px;
+
+  /* Proportional scaling: the design is authored at a 1440px reference width
+     and `zoom` scales the UI linearly so viewports between 1224 and 1920 see
+     the same layout. Wide monitors cap at 1.0x (authored density, the fluid
+     center grows); below 1224 it caps at 0.85x so text stays readable.
+     Width/height divide by zoom so painted size matches the viewport. */
+  --root-zoom: clamp(0.85, calc(100vw / 1440px), 1);
+  zoom: var(--root-zoom);
+  width: calc(100vw / var(--root-zoom));
+  height: calc(100vh / var(--root-zoom));
+  min-height: calc(100vh / var(--root-zoom));
+}
+
+/* Dark theme: overrides the same tokens, so every var(--c-*) consumer follows.
+   Only colours change. The active theme is `data-theme` on the document root
+   (see src/lib/theme.ts). */
+:root[data-theme="dark"] .admin-root {
+  /* Admin maroon accent, dark variant. 900/800/200/100/50 are dark maroon
+     surfaces; 700-300 are light rose accents legible on the dark bg. */
+  --c-blue-900: #3a1c22;
+  --c-blue-800: #5a2733;
+  --c-blue-700: #e07a87;
+  --c-blue-600: #e68a96;
+  --c-blue-500: #ec9aa5;
+  --c-blue-400: #f0aeb7;
+  --c-blue-300: #f4c2c9;
+  --c-blue-200: #5a2a33;
+  --c-blue-100: #4a232b;
+  --c-blue-50: #3a1a20;
+
+  --c-safe: #6cc488;
+  --c-safe-bg: #1c3825;
+  --c-warn: #e6b066;
+  --c-warn-bg: #3a2c12;
+  --c-danger: #ee7a72;
+  --c-danger-bg: #3a1c19;
+
+  --c-ink: #e9edf2;
+  --c-ink-2: #c1c8d2;
+  --c-ink-3: #9aa4b2;
+  --c-ink-4: #7a838f;
+  --c-line: #2a313b;
+  --c-line-2: #1e242c;
+  --c-bg: #0e1218;
+  --c-card: #161b22;
+  --c-card-2: #1b2129;
+  --c-surface: #1a222b;
+  --c-rule-strong: #d8dde4;
+
+  /* Severity stays constant (see light block); only the AI accent + the
+     unknown-grey soften for the dark surface. */
+  --ai: #c3b1f0;
+  --ai-bg: #2a2440;
+  --sev-unknown: #748299;
+}
+
+/* Body backdrop tracks the active theme so the page outside `.admin-root`
+   (e.g. the topbar's surrounding shell) does not flash white in dark mode. */
+:root[data-theme="dark"] body.admin-mode {
+  background: #0e1218;
+}
+:root[data-theme="light"] body.admin-mode {
+  background: #f7f5ef;
+}
+
+.admin-root * {
+  box-sizing: border-box;
+}
+
+/* Native form controls (radios, checkboxes, datetime picker) must follow the
+   explicit app theme, not the OS: the inherited `color-scheme: light dark`
+   otherwise renders them dark on a dark-OS machine while the app is light. */
+.admin-root {
+  color-scheme: light;
+}
+:root[data-theme="dark"] .admin-root {
+  color-scheme: dark;
+}
+
+.admin-root .mono {
+  font-family: var(--font-mono);
+  font-feature-settings: "tnum";
+}
+
+.admin-root button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.admin-root .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  border: 1px solid transparent;
+  background: var(--c-blue-700);
+  color: #fff;
+  letter-spacing: -0.005em;
+  line-height: 1.3;
+}
+.admin-root .btn.secondary {
+  background: var(--c-card);
+  color: var(--c-ink);
+  border-color: var(--c-line);
+}
+/* Primary CTA: darker in dark mode so the white label stays legible. */
+:root[data-theme="dark"] .admin-root .btn:not(.secondary):not(.danger):not(.warn) {
+  background: #8a2536;
+  border-color: #8a2536;
+  color: #fff;
+}
+:root[data-theme="dark"]
+  .admin-root
+  .btn:not(.secondary):not(.danger):not(.warn):not(:disabled):hover {
+  background: #a32d42;
+  border-color: #a32d42;
+}
+.admin-root .btn.danger {
+  background: var(--c-danger);
+}
+.admin-root .btn.warn {
+  background: var(--c-warn);
+  color: #fff;
+}
+.admin-root .btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.admin-root .chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 500;
+  background: var(--c-card);
+  border: 1px solid var(--c-line);
+  color: var(--c-ink-2);
+  line-height: 1.4;
+}
+.admin-root .chip.blue {
+  background: var(--c-blue-100);
+  border-color: var(--c-blue-100);
+  color: var(--c-blue-700);
+}
+.admin-root .chip.safe {
+  background: var(--c-safe-bg);
+  border-color: var(--c-safe-bg);
+  color: var(--c-safe);
+}
+.admin-root .chip.warn {
+  background: var(--c-warn-bg);
+  border-color: var(--c-warn-bg);
+  color: var(--c-warn);
+}
+.admin-root .chip.danger {
+  background: var(--c-danger-bg);
+  border-color: var(--c-danger-bg);
+  color: var(--c-danger);
+}
+
+.admin-root .card {
+  background: var(--c-card);
+  border: 1px solid var(--c-line);
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.admin-root .label-eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--c-ink-3);
+}
+
+.admin-root .field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.admin-root .field > label {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--c-ink-2);
+  line-height: 1.4;
+}
+.admin-root .field input[type="text"],
+.admin-root .field input[type="datetime-local"],
+.admin-root .field input[type="number"],
+.admin-root .field textarea,
+.admin-root .field select {
+  width: 100%;
+  padding: 10px 13px;
+  font-size: 14.5px;
+  font-family: inherit;
+  background: var(--c-card);
+  border: 1px solid var(--c-line);
+  border-radius: 8px;
+  color: var(--c-ink);
+  outline: none;
+  /* Inherit the admin-root scheme (pinned to the app theme above) rather than
+     re-following the OS, so the datetime picker chrome matches the form. */
+  color-scheme: inherit;
+}
+.admin-root .field input:focus,
+.admin-root .field textarea:focus,
+.admin-root .field select:focus {
+  border-color: var(--c-blue-600);
+  box-shadow: 0 0 0 3px var(--c-blue-100);
+}
+
+/* Baseline for inline number/text inputs not wrapped in `.field`. Without it
+   UA chrome reads as dark-on-dark on dark-mode panels. */
+.admin-root input[type="number"]:not(.field input),
+.admin-root input[type="text"]:not(.field input):not(.search-input):not(.login-input) {
+  padding: 6px 9px;
+  font-size: 13px;
+  font-family: inherit;
+  background: var(--c-card);
+  border: 1px solid var(--c-line);
+  border-radius: 6px;
+  color: var(--c-ink);
+  outline: none;
+  color-scheme: inherit;
+}
+.admin-root input[type="number"]:not(.field input):focus,
+.admin-root input[type="text"]:not(.field input):not(.search-input):not(.login-input):focus {
+  border-color: var(--c-blue-600);
+  box-shadow: 0 0 0 2px var(--c-blue-100);
+}
+
+.admin-root .choice {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 11px;
+  background: var(--c-card);
+  border: 1px solid var(--c-line);
+  border-radius: 7px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--c-ink);
+  text-align: start;
+}
+.admin-root .choice:hover {
+  border-color: var(--c-blue-400);
+}
+.admin-root .choice.selected {
+  border-color: var(--c-blue-700);
+  background: var(--c-blue-50);
+  color: var(--c-blue-700);
+}
+/* Crisis-type raster icons have light backgrounds baked in; a cream medallion
+   keeps them from reading as a white blob on dark cards. */
+.admin-root .choice > img {
+  background: #f1ede2;
+  padding: 2px;
+  border-radius: 999px;
+  box-sizing: content-box;
+}
+:root[data-theme="dark"] .admin-root .choice > img {
+  background: #e8e3d2;
+}
+
+.admin-root .spin {
+  width: 12px;
+  height: 12px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: admin-spin 0.8s linear infinite;
+  display: inline-block;
+}
+@keyframes admin-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.admin-root a.admin-tab,
+.admin-root .admin-tab {
+  position: relative;
+  padding: 7px 12px;
+  font-size: 12px;
+  border-radius: 6px;
+  text-decoration: none;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+.admin-root .admin-tab:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+}
+.admin-root .admin-tab:focus-visible {
+  outline: 2px solid var(--c-blue-300);
+  outline-offset: 2px;
+}
+.admin-root .admin-tab.active {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  font-weight: 600;
+}
+.admin-root .admin-tab.active::after {
+  content: "";
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: -2px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--c-blue-300);
+}
+
+.admin-root .btn {
+  transition: background 120ms ease, border-color 120ms ease, box-shadow 120ms ease, transform 120ms
+    ease;
+}
+.admin-root .btn:not(:disabled):hover {
+  filter: brightness(1.04);
+}
+.admin-root .btn.secondary:not(:disabled):hover {
+  border-color: var(--c-blue-400);
+  background: var(--c-blue-50);
+}
+.admin-root .btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--c-blue-200);
+}
+.admin-root .btn.danger:focus-visible {
+  box-shadow: 0 0 0 3px var(--c-danger-bg);
+}
+.admin-root .btn:disabled {
+  cursor: not-allowed;
+}
+
+.admin-root .admin-row {
+  transition: background 120ms ease;
+}
+.admin-root .admin-row:hover {
+  background: var(--c-blue-50);
+}
+
+/* Form-builder phone preview */
+.admin-root .fb-track {
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+  padding: 8px 4px 24px;
+  min-height: 100%;
+}
+.admin-root .fb-edit-input {
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  outline: none;
+  transition: background 100ms ease, border-color 100ms ease, box-shadow 100ms ease;
+}
+.admin-root .fb-edit-input:hover {
+  background: var(--c-blue-50);
+  border-color: var(--c-blue-200);
+}
+.admin-root .fb-edit-input:focus {
+  background: var(--c-blue-50);
+  border-color: var(--c-blue-600);
+  box-shadow: 0 0 0 2px var(--c-blue-100);
+}
+.admin-root .fb-edit-title {
+  font-weight: 700;
+  color: var(--c-ink);
+}
+.admin-root .fb-option-tile {
+  position: relative;
+  transition: border-color 100ms ease, background 100ms ease, transform 100ms ease;
+}
+.admin-root .fb-option-tile:hover {
+  border-color: var(--c-blue-400) !important;
+  background: var(--c-blue-50) !important;
+}
+.admin-root .fb-option-tile.selected:hover {
+  background: var(--c-blue-50) !important;
+}
+.admin-root .fb-primary {
+  border: none;
+  cursor: pointer;
+  transition: background 100ms ease, box-shadow 100ms ease;
+}
+.admin-root .fb-primary:hover {
+  background: var(--c-blue-800) !important;
+  box-shadow: 0 0 0 3px var(--c-blue-100);
+}
+.admin-root .fb-mini-iconbtn {
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  border: none;
+  background: transparent;
+  color: var(--c-ink-3);
+  cursor: pointer;
+  transition: background 100ms ease, color 100ms ease;
+  padding: 0;
+}
+.admin-root .fb-mini-iconbtn:hover {
+  background: var(--c-blue-50);
+  color: var(--c-blue-700);
+}
+.admin-root .fb-mini-iconbtn.danger:hover {
+  background: var(--c-danger-bg);
+  color: var(--c-danger);
+}
+.admin-root .fb-type-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: var(--c-blue-100);
+  color: var(--c-blue-700);
+  border: 1px solid var(--c-blue-200);
+  cursor: pointer;
+  font-family: inherit;
+}
+.admin-root .fb-type-pill:hover {
+  background: var(--c-blue-50);
+  border-color: var(--c-blue-400);
+}
+.admin-root .fb-required-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 8px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--c-ink-3);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+.admin-root .fb-required-toggle input {
+  accent-color: var(--c-blue-700);
+  width: 9px;
+  height: 9px;
+}
+.admin-root .fb-add-option {
+  align-self: flex-start;
+  padding: 2px 6px;
+  font-size: 8px;
+  font-weight: 700;
+  background: transparent;
+  color: var(--c-blue-700);
+  border: 1px dashed var(--c-blue-300);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 100ms ease, border-color 100ms ease;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+.admin-root .fb-add-option:hover {
+  background: var(--c-blue-50);
+  border-color: var(--c-blue-600);
+}
+.admin-root .fb-insert-gap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0 -10px;
+  border: 1.5px dashed var(--c-line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--c-blue-700);
+  cursor: pointer;
+  opacity: 0.35;
+  transition: opacity 120ms ease, border-color 120ms ease, background 120ms ease, transform 120ms
+    ease;
+  z-index: 1;
+  position: relative;
+}
+.admin-root .fb-insert-gap:hover {
+  opacity: 1;
+  border-color: var(--c-blue-600);
+  border-style: solid;
+  background: var(--c-blue-50);
+  transform: scale(1.1);
+}
+
+.admin-root .fb-locked-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--c-ink-3);
+  background: var(--c-line-2);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+.admin-root .fb-question-card {
+  position: relative;
+  transition: border-color 100ms ease, box-shadow 100ms ease;
+}
+.admin-root .fb-question-card:hover {
+  border-color: var(--c-blue-400);
+  box-shadow: 0 0 0 3px var(--c-blue-50);
+}
+.admin-root .fb-phone-wrap {
+  transition: transform 180ms cubic-bezier(0.2, 0.7, 0.3, 1);
+  /* The phone mock previews what the citizen sees, so re-map the inherited
+     maroon --c-blue-* ramp to the citizen light-theme blue (tokens.css :root)
+     inside the phone only. Builder chrome outside .fb-phone-wrap stays admin. */
+  --c-blue-900: #0a3a6b;
+  --c-blue-800: #0c4a8a;
+  --c-blue-700: #1670c2;
+  --c-blue-600: #2c8fde;
+  --c-blue-500: #4faaeb;
+  --c-blue-400: #7fc1f0;
+  --c-blue-300: #a9d6f6;
+  --c-blue-200: #cfe7fa;
+  --c-blue-100: #e6f2fc;
+  --c-blue-50: #f3f8fd;
+}
+.admin-root .fb-drag-handle {
+  cursor: grab;
+}
+.admin-root .fb-drag-handle:active {
+  cursor: grabbing;
+}
+.admin-root .fb-drop-indicator {
+  width: 6px;
+  align-self: stretch;
+  margin: 36px 0 12px;
+  background: var(--c-blue-700);
+  border-radius: 3px;
+  box-shadow: 0 0 0 4px var(--c-blue-100);
+  animation: fb-pulse 0.9s ease-in-out infinite alternate;
+}
+@keyframes fb-pulse {
+  from {
+    opacity: 0.7;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.admin-root .skeleton {
+  background: linear-gradient(90deg, var(--c-line-2) 0%, var(--c-line) 50%, var(--c-line-2) 100%);
+  background-size: 200% 100%;
+  animation: admin-shimmer 1.4s ease-in-out infinite;
+  border-radius: 6px;
+}
+@keyframes admin-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+/* --- Unified Dashboard niceties (semantic search + AI) ------------------ */
+/* Streaming summary, chat indicator, indeterminate progress, anomaly pin ring.
+   Plain CSS, no animation library. */
+
+/* Summary header pulse while the SSE stream is open. Kept subtle so it does
+   not read as an error banner. */
+.admin-root .pulse-soft {
+  animation: admin-pulse-soft 1.6s ease-in-out infinite;
+}
+@keyframes admin-pulse-soft {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+/* Fade-in for incremental content (cluster cards, summary frames). The
+   `forwards` lets the element rest at opacity 1 after the animation. */
+.admin-root .fade-in {
+  animation: admin-fade-in 220ms ease-out forwards;
+}
+@keyframes admin-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Typing cursor for streaming prose (small-N summary or assistant text). */
+.admin-root .caret {
+  display: inline-block;
+  width: 6px;
+  height: 1em;
+  margin-inline-start: 2px;
+  vertical-align: text-bottom;
+  background: var(--c-blue-700);
+  border-radius: 1px;
+  animation: admin-caret 1s steps(2) infinite;
+}
+@keyframes admin-caret {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* Three-dot typing indicator (waiting on first AI frame or a chat turn). */
+.admin-root .dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  line-height: 1;
+}
+.admin-root .dots > span {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0.35;
+  animation: admin-dot 1.1s ease-in-out infinite;
+}
+.admin-root .dots > span:nth-child(2) {
+  animation-delay: 0.18s;
+}
+.admin-root .dots > span:nth-child(3) {
+  animation-delay: 0.36s;
+}
+@keyframes admin-dot {
+  0%,
+  80%,
+  100% {
+    opacity: 0.25;
+    transform: translateY(0);
+  }
+  40% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+}
+
+/* Indeterminate progress bar across the top of the map while a search is
+   in flight. A sliding gradient, no percentage. */
+.admin-root .progress-bar {
+  position: relative;
+  height: 2px;
+  width: 100%;
+  background: transparent;
+  overflow: hidden;
+}
+.admin-root .progress-bar::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 35%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--c-blue-600) 40%,
+    var(--c-blue-600) 60%,
+    transparent 100%
+  );
+  animation: admin-progress 1.1s linear infinite;
+  border-radius: 999px;
+}
+@keyframes admin-progress {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(320%);
+  }
+}
+
+/* Indeterminate fill for the building-ingest progress track when there's no
+   total to divide by yet. Reuses the `admin-progress` keyframe but fills the
+   rounded parent track. */
+.admin-root .indeterminate-sweep {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+.admin-root .indeterminate-sweep::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 40%;
+  background: linear-gradient(90deg, transparent 0%, var(--c-blue-600) 50%, transparent 100%);
+  animation: admin-progress 1.1s linear infinite;
+  border-radius: 999px;
+}
+
+/* Shimmer button: applied to the chat "Send" while loading. */
+.admin-root .send-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.admin-root .send-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.45) 50%,
+    transparent 70%
+  );
+  transform: translateX(-100%);
+  animation: admin-send-shimmer 1.2s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes admin-send-shimmer {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+/* Generic icon-button hover used by the sidebar tab strip + small ctas. */
+.admin-root .icon-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 4px;
+  cursor: pointer;
+  color: var(--c-ink-3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+.admin-root .icon-btn:hover {
+  background: var(--c-blue-50);
+  color: var(--c-blue-700);
+}
+.admin-root .icon-btn.danger:hover {
+  background: var(--c-danger-bg);
+  color: var(--c-danger);
+}
+
+/* ── Crises page primitives ──────────────────────────────────────────────
+   Scoped under .admin-root so they don't bleed into the citizen PWA. */
+
+/* Hairline info icon with a hover/focus tooltip that pops below the icon,
+   capped at ~320px wide. */
+.admin-root button.info-hint,
+.admin-root .info-hint {
+  position: relative;
+  display: inline-flex;
+  width: 16px;
+  height: 16px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  color: var(--c-ink-4);
+  cursor: help;
+  vertical-align: middle;
+  flex-shrink: 0;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  font: inherit;
+}
+.admin-root .info-hint:hover,
+.admin-root .info-hint:focus-visible {
+  color: var(--c-blue-700);
+  outline: none;
+}
+.admin-root .info-hint > svg {
+  display: block;
+}
+.admin-root .info-hint-tip {
+  position: absolute;
+  z-index: 60;
+  top: calc(100% + 8px);
+  left: 50%;
+  /* translate3d forces a GPU layer so the card stacks above a map's WebGL
+     canvas layer (which is always composited and would otherwise paint over a
+     plain higher-z-index tooltip that overlaps it). */
+  transform: translate3d(-50%, -4px, 0);
+  width: max-content;
+  max-width: 320px;
+  padding: 10px 12px;
+  /* Card-surface look, matching the dashboard InfoTooltip (`.info-tip-pop.surface`):
+     light in light mode, dark in dark mode. The `--c-*` tokens invert per theme. */
+  background: var(--c-card);
+  color: var(--c-ink);
+  border: 1px solid var(--c-line);
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0;
+  text-transform: none;
+  text-align: start;
+  white-space: normal;
+  box-shadow: var(--c-shadow-2);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 140ms ease, transform 140ms ease;
+}
+.admin-root .info-hint-tip.end {
+  left: auto;
+  right: 0;
+  transform: translate3d(0, -4px, 0);
+}
+.admin-root .info-hint:hover .info-hint-tip,
+.admin-root .info-hint:focus-visible .info-hint-tip {
+  opacity: 1;
+  transform: translate3d(-50%, 0, 0);
+}
+.admin-root .info-hint:hover .info-hint-tip.end,
+.admin-root .info-hint:focus-visible .info-hint-tip.end {
+  transform: translate3d(0, 0, 0);
+}
+.admin-root .info-hint-tip::before {
+  content: "";
+  position: absolute;
+  top: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-bottom-color: var(--c-card);
+  border-top: 0;
+}
+.admin-root .info-hint-tip.end::before {
+  left: auto;
+  right: 6px;
+  transform: none;
+}
+.admin-root .info-hint-tip b {
+  font-weight: 700;
+  color: var(--c-ink);
+}
+.admin-root .info-hint-tip code {
+  font-family: var(--font-mono);
+  background: color-mix(in srgb, var(--c-ink) 10%, transparent);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+/* Section block: the grouping card on the Crises page. Hairline border, no
+   shadow, a deep-ink rule under the head. */
+.admin-root .section-block {
+  position: relative;
+  border: 1px solid var(--c-line);
+  background: var(--c-card);
+  border-radius: 12px;
+  padding: 16px 18px 18px;
+  margin-bottom: 0;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.admin-root .section-block.is-accent {
+  border-color: var(--c-blue-200);
+}
+.admin-root .section-block.is-accent .section-head {
+  border-bottom-color: var(--c-blue-200);
+}
+.admin-root .section-block.is-warn {
+  border-color: var(--c-warn);
+}
+.admin-root .section-block.is-warn .section-head {
+  border-bottom-color: var(--c-warn);
+}
+.admin-root .section-block.is-danger {
+  border-color: var(--c-danger);
+}
+.admin-root .section-block.is-danger .section-head {
+  border-bottom-color: var(--c-danger);
+}
+.admin-root .section-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: -2px -2px 14px;
+  padding: 0 2px 12px;
+  border-bottom: 1px solid var(--c-line);
+}
+/* Collapsed: the head is the only row, so drop its bottom border and margin
+   to avoid an empty strip below it. */
+.admin-root .section-block.is-collapsed > .section-head {
+  margin-bottom: -2px;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+/* Clickable wrapper around number + title + chevron. Resets UA button chrome. */
+.admin-root .section-head .section-head-toggle {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  text-align: start;
+  cursor: default;
+}
+.admin-root .section-head.is-toggle .section-head-toggle {
+  cursor: pointer;
+}
+.admin-root .section-head .section-head-toggle:focus-visible {
+  outline: 2px solid var(--c-blue-300);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+.admin-root .section-head.is-toggle .section-head-toggle:hover .section-title {
+  color: var(--c-blue-700);
+}
+.admin-root .section-head .section-chevron {
+  flex-shrink: 0;
+  margin-left: 6px;
+  margin-top: 3px;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--c-ink-3);
+  transition: transform 140ms ease, color 120ms ease;
+  /* Closed = pointing right (▾ rotated -90°); open = pointing down. */
+  transform: rotate(-90deg);
+}
+.admin-root .section-head .section-chevron.is-open {
+  transform: rotate(0deg);
+}
+.admin-root .section-head.is-toggle .section-head-toggle:hover .section-chevron {
+  color: var(--c-blue-700);
+}
+.admin-root .section-head .section-num {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: var(--c-blue-50);
+  color: var(--c-blue-700);
+  border: 1px solid var(--c-blue-200);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 12px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  letter-spacing: 0;
+  line-height: 1;
+  margin-top: 1px;
+}
+.admin-root .section-block.is-accent .section-head .section-num {
+  background: var(--c-blue-100);
+  color: var(--c-blue-700);
+  border-color: var(--c-blue-200);
+}
+.admin-root .section-block.is-warn .section-head .section-num {
+  background: var(--c-warn-bg);
+  color: var(--c-warn);
+  border-color: var(--c-warn);
+}
+.admin-root .section-block.is-danger .section-head .section-num {
+  background: var(--c-danger-bg);
+  color: var(--c-danger);
+  border-color: var(--c-danger);
+}
+.admin-root .section-head .section-title {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.012em;
+  color: var(--c-ink);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1.2;
+}
+.admin-root .section-head .section-sub {
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: var(--c-ink-3);
+  margin-top: 4px;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.admin-root .section-head > div {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* Whole crises page (canvas + right rail). Spans the full viewport so the
+   rail anchors to the right edge. */
+.admin-root .crises-shell {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--c-rail-w);
+  min-height: 0;
+  width: 100%;
+  background: var(--c-bg);
+}
+@media (max-width: 1200px) {
+  .admin-root {
+    --c-rail-w: 340px;
+  }
+}
+@media (max-width: 980px) {
+  .admin-root .crises-shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .admin-root .crises-shell > .crises-rail {
+    display: none;
+  }
+}
+
+/* 12-column responsive grid for the form blocks on the Crises page.
+   Blocks declare their footprint via `data-span="N"` (1..12). The grid is
+   capped at a reading width and centred; below 1100px it collapses to one
+   column. */
+.admin-root .crisis-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 16px;
+  align-items: start;
+  width: 100%;
+}
+.admin-root .crisis-grid > .section-block[data-span="6"] {
+  grid-column: span 6;
+}
+.admin-root .crisis-grid > .section-block[data-span="12"] {
+  grid-column: 1 / -1;
+}
+.admin-root .crisis-grid > [data-span="6"] {
+  grid-column: span 6;
+}
+.admin-root .crisis-grid > [data-span="12"] {
+  grid-column: 1 / -1;
+}
+@media (max-width: 1100px) {
+  .admin-root .crisis-grid > .section-block[data-span="6"],
+  .admin-root .crisis-grid > [data-span="6"] {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Crumb strip: single-row breadcrumb atop each panel (create or detail), with
+   the timezone chip on its trailing edge. */
+.admin-root .crumb-strip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--c-line);
+  background: var(--c-card);
+  font-size: 12.5px;
+  color: var(--c-ink-3);
+}
+.admin-root .crumb-strip .crumb-mark {
+  display: inline-flex;
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  align-items: center;
+  justify-content: center;
+  background: var(--c-blue-50);
+  color: var(--c-blue-700);
+  border: 1px solid var(--c-blue-200);
+}
+.admin-root .crumb-strip .crumb-active {
+  font-weight: 600;
+  color: var(--c-ink);
+  letter-spacing: -0.005em;
+}
+.admin-root .crumb-strip .crumb-id {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--c-ink-4);
+  letter-spacing: 0;
+}
+.admin-root .crumb-strip .crumb-tz {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 9px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--c-warn);
+  background: var(--c-warn-bg);
+  border-radius: 999px;
+  letter-spacing: 0;
+  line-height: 1;
+}
+.admin-root .crumb-strip .crumb-tz::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--c-warn);
+}
+.admin-root .crumb-strip .crumb-spacer {
+  flex: 1;
+}
+
+/* Lifecycle bar: the row of buttons at the top of the Activation block
+   in the detail panel. Each button is tone-coordinated to its action. */
+.admin-root .lifecycle-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.admin-root .lifecycle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border-radius: 8px;
+  background: var(--c-card);
+  border: 1px solid var(--c-line);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-ink);
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+  letter-spacing: -0.005em;
+}
+.admin-root .lifecycle-btn:hover:not(:disabled) {
+  border-color: var(--c-blue-400);
+  background: var(--c-blue-50);
+}
+.admin-root .lifecycle-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.admin-root .lifecycle-btn .ltag {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: var(--c-line-2);
+  color: var(--c-ink-3);
+}
+.admin-root .lifecycle-btn.is-primary {
+  background: var(--c-blue-700);
+  border-color: var(--c-blue-700);
+  color: #fff;
+}
+.admin-root .lifecycle-btn.is-primary:hover:not(:disabled) {
+  background: var(--c-blue-800);
+  border-color: var(--c-blue-800);
+}
+:root[data-theme="dark"] .admin-root .lifecycle-btn.is-primary {
+  background: #8a2536;
+  border-color: #8a2536;
+}
+:root[data-theme="dark"] .admin-root .lifecycle-btn.is-primary:hover:not(:disabled) {
+  background: #a32d42;
+  border-color: #a32d42;
+}
+.admin-root .lifecycle-btn.is-primary .ltag {
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+}
+.admin-root .lifecycle-btn.is-warn .ltag {
+  background: var(--c-warn-bg);
+  color: var(--c-warn);
+}
+.admin-root .lifecycle-btn.is-danger .ltag {
+  background: var(--c-danger-bg);
+  color: var(--c-danger);
+}
+
+/* Hero strip atop the page: editorial single-row band with a heavy
+   bottom rule that anchors the whole console below. */
+.admin-root .page-hero {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 16px 28px;
+  background: var(--c-card);
+  border-bottom: 1px solid var(--c-line);
+  position: relative;
+}
+.admin-root .page-hero-inner {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  width: 100%;
+}
+.admin-root .page-hero::after {
+  content: "";
+  position: absolute;
+  left: 22px;
+  right: 22px;
+  bottom: -1px;
+  height: 2px;
+  background: var(--c-rule-strong);
+}
+.admin-root .page-hero .hero-title {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 2px;
+}
+.admin-root .page-hero .eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--c-ink-4);
+}
+.admin-root .page-hero h1 {
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.018em;
+  margin: 0;
+  color: var(--c-ink);
+  line-height: 1.1;
+}
+.admin-root .page-hero p {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--c-ink-3);
+  max-width: 56ch;
+}
+.admin-root .stat-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  background: var(--c-card);
+  border: 1px solid var(--c-line);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--c-ink-3);
+  letter-spacing: -0.005em;
+  line-height: 1;
+}
+.admin-root .stat-pill .stat-num {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  font-feature-settings: "tnum";
+  color: var(--c-ink);
+  letter-spacing: 0;
+}
+.admin-root .stat-pill .stat-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--c-ink-4);
+  display: inline-block;
+  margin-inline-end: 2px;
+}
+.admin-root .stat-pill.is-live {
+  border-color: var(--c-safe-bg);
+  background: var(--c-safe-bg);
+  color: var(--c-safe);
+}
+.admin-root .stat-pill.is-live .stat-num {
+  color: var(--c-safe);
+}
+.admin-root .stat-pill.is-live .stat-dot {
+  background: var(--c-safe);
+  box-shadow: 0 0 0 2px rgba(47, 125, 79, 0.18);
+}
+.admin-root .stat-pill.is-inactive {
+  border-color: var(--c-warn-bg);
+  background: var(--c-warn-bg);
+  color: var(--c-warn);
+}
+.admin-root .stat-pill.is-inactive .stat-num {
+  color: var(--c-warn);
+}
+.admin-root .stat-pill.is-inactive .stat-dot {
+  background: var(--c-warn);
+}
+.admin-root .stat-pill.is-archived .stat-dot {
+  background: var(--c-ink-4);
+}
+
+/* Inline TZ chip: sits next to datetime inputs so the admin always sees
+   which display zone their typed digits will be interpreted in. */
+.admin-root .tz-chip-strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0;
+  border-radius: 999px;
+  background: var(--c-warn-bg);
+  color: var(--c-warn);
+  border: 1px solid rgba(184, 121, 20, 0.35);
+  vertical-align: middle;
+  line-height: 1.4;
+}
+.admin-root .tz-chip-strong::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--c-warn);
+}
+
+/* Segmented yes/no toggle (the "load buildings now?" question). */
+.admin-root .seg-toggle {
+  display: inline-flex;
+  background: var(--c-line-2);
+  padding: 3px;
+  border-radius: 8px;
+  border: 1px solid var(--c-line);
+}
+.admin-root .seg-toggle button {
+  border: 0;
+  background: transparent;
+  padding: 6px 14px;
+  font-size: 12.5px;
+  font-weight: 600;
+  border-radius: 6px;
+  color: var(--c-ink-3);
+  transition: background 120ms ease, color 120ms ease, box-shadow 120ms ease;
+  line-height: 1.4;
+}
+.admin-root .seg-toggle button.on {
+  background: var(--c-card);
+  color: var(--c-ink);
+  box-shadow: 0 1px 2px rgba(20, 24, 36, 0.08);
+}
+.admin-root .seg-toggle button.on.is-danger {
+  color: var(--c-danger);
+}
+.admin-root .seg-toggle button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Activation-state hero: compact horizontal status bar. */
+.admin-root .status-rail {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  padding: 12px 22px;
+  background: var(--c-card);
+  border-bottom: 1px solid var(--c-line);
+}
+.admin-root .status-cell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--c-line-2);
+  border: 1px solid var(--c-line);
+  cursor: pointer;
+  transition: border-color 120ms ease, background 120ms ease;
+  text-align: start;
+}
+.admin-root .status-cell:hover {
+  border-color: var(--c-blue-400);
+}
+.admin-root .status-cell .step-num {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--c-ink-4);
+  font-family: var(--font-mono);
+  line-height: 1;
+}
+.admin-root .status-cell .step-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-ink);
+  line-height: 1.3;
+}
+.admin-root .status-cell .step-sub {
+  font-size: 11.5px;
+  color: var(--c-ink-3);
+  line-height: 1.35;
+}
+.admin-root .status-cell.is-done {
+  background: var(--c-safe-bg);
+  border-color: var(--c-safe-bg);
+}
+.admin-root .status-cell.is-done .step-num,
+.admin-root .status-cell.is-done .step-sub {
+  color: var(--c-safe);
+}
+.admin-root .status-cell.is-done .step-title {
+  color: var(--c-safe);
+}
+.admin-root .status-cell.is-active {
+  background: var(--c-blue-50);
+  border-color: var(--c-blue-200);
+}
+.admin-root .status-cell.is-active .step-title {
+  color: var(--c-blue-700);
+}
+.admin-root .status-cell.is-active .step-num {
+  color: var(--c-blue-700);
+}
+.admin-root .status-cell.is-failed {
+  background: var(--c-danger-bg);
+  border-color: var(--c-danger-bg);
+}
+.admin-root .status-cell.is-failed .step-num,
+.admin-root .status-cell.is-failed .step-sub,
+.admin-root .status-cell.is-failed .step-title {
+  color: var(--c-danger);
+}
+.admin-root .status-cell .step-glyph {
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: var(--c-line);
+  color: var(--c-ink-3);
+  font-size: 9px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.admin-root .status-cell.is-done .step-glyph {
+  background: var(--c-safe);
+  color: #fff;
+}
+.admin-root .status-cell.is-active .step-glyph {
+  background: var(--c-blue-700);
+  color: #fff;
+}
+.admin-root .status-cell.is-failed .step-glyph {
+  background: var(--c-danger);
+  color: #fff;
+}
+
+/* Definition-list rows used in the metadata panel. Compact, mono numbers. */
+.admin-root .meta-grid {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  row-gap: 6px;
+  column-gap: 14px;
+  padding: 10px 12px;
+  background: var(--c-line-2);
+  border: 1px solid var(--c-line);
+  border-radius: 8px;
+  font-size: 12px;
+}
+.admin-root .meta-grid dt {
+  color: var(--c-ink-3);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.5;
+}
+.admin-root .meta-grid dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--c-ink);
+  word-break: break-word;
+  line-height: 1.5;
+}
+
+/* Crises navigator (right rail). Sticky header + scrolling body of cards. */
+.admin-root .crises-rail {
+  display: flex;
+  flex-direction: column;
+  background: var(--c-card);
+  border-inline-start: 1px solid var(--c-line);
+  min-height: 0;
+  overflow: hidden;
+}
+.admin-root .crises-rail .rail-head {
+  padding: 16px 18px 12px;
+  border-bottom: 1px solid var(--c-line);
+  background: var(--c-card-2);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.admin-root .crises-rail .rail-head-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.admin-root .crises-rail .rail-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--c-ink);
+  letter-spacing: -0.01em;
+}
+.admin-root .crises-rail .rail-total {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--c-ink-3);
+  background: var(--c-line-2);
+  padding: 2px 9px;
+  border-radius: 999px;
+}
+.admin-root .crises-rail .rail-sub {
+  margin: 4px 0 0;
+  font-size: 12.5px;
+  color: var(--c-ink-3);
+  line-height: 1.45;
+}
+.admin-root .crises-rail .rail-search {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 10px;
+  padding: 7px 10px;
+  border: 1px solid var(--c-line);
+  border-radius: 8px;
+  background: var(--c-card);
+  color: var(--c-ink-3);
+}
+.admin-root .crises-rail .rail-search:focus-within {
+  border-color: var(--c-blue-300, var(--c-blue-700));
+}
+.admin-root .crises-rail .rail-search > svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+.admin-root .crises-rail .rail-search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  color: var(--c-ink);
+  outline: none;
+}
+.admin-root .crises-rail .rail-search input::placeholder {
+  color: var(--c-ink-3);
+}
+.admin-root .crises-rail .rail-search-clear {
+  display: inline-flex;
+  flex-shrink: 0;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  color: var(--c-ink-3);
+  cursor: pointer;
+}
+.admin-root .crises-rail .rail-search-clear:hover {
+  color: var(--c-ink);
+}
+.admin-root .crises-rail .rail-search-clear > svg {
+  width: 14px;
+  height: 14px;
+}
+.admin-root .crises-rail .rail-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 14px 24px;
+}
+
+/* Crisis chooser pill: segmented status + Combobox in one pill. */
+.admin-root .kpi-headline {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--c-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-transform: capitalize;
+  letter-spacing: -0.008em;
+}
+
+/* Severity bar: slim inline indicator inside the Severity KPI cell */
+.admin-root .sev-bar {
+  display: flex;
+  height: 8px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--c-line-2);
+}
+.admin-root .sev-legend {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.admin-root .sev-legend .sev-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  color: var(--c-ink-3);
+}
+.admin-root .sev-legend .sev-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+.admin-root .sev-legend .sev-num {
+  font-family: var(--font-mono);
+  font-feature-settings: "tnum";
+  font-weight: 700;
+  color: var(--c-ink-2);
+}
+
+/* Coverage rows inside the Quality cell */
+.admin-root .cov-grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 12px;
+  row-gap: 3px;
+  font-size: 11.5px;
+  color: var(--c-ink-3);
+}
+.admin-root .cov-grid .cov-num {
+  font-family: var(--font-mono);
+  font-feature-settings: "tnum";
+  font-weight: 700;
+  color: var(--c-ink-2);
+  text-align: end;
+}
+
+/* Clear-filter "×" segment at the trailing edge of an active filter pill. */
+.admin-root .pill-clear {
+  transition: background 100ms ease, color 100ms ease;
+}
+.admin-root .pill-clear:hover {
+  background: var(--c-blue-100);
+  color: var(--c-blue-800, var(--c-blue-700));
+}
+
+/* Topbar refinements */
+.admin-root .topbar-divider {
+  width: 1px;
+  height: 22px;
+  background: rgba(255, 255, 255, 0.14);
+  margin: 0 4px;
+  align-self: center;
+}
+.admin-root .topbar-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 11px;
+  border-radius: 7px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 12px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+  line-height: 1;
+}
+.admin-root .topbar-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #fff;
+}
+.admin-root .topbar-btn.is-ghost {
+  border-color: rgba(255, 255, 255, 0.18);
+}
+.admin-root .topbar-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #a32d42 0%, #8a2536 100%);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  letter-spacing: 0;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+/* Soft pill underline for the active topbar tab. */
+.admin-root .admin-tab.active::after {
+  background: var(--c-blue-300);
+  height: 2px;
+  border-radius: 2px;
+  opacity: 0.9;
+}
+
+/* ── Sign-in screen ───────────────────────────────────────────────────────
+   Split layout. Left: navy brand canvas (graticule, contour rings, radar
+   sweep), navy in BOTH themes. Right: sign-in column in the `.page-hero`
+   language, which follows the active theme. */
+.admin-root.login-screen {
+  display: grid;
+  grid-template-columns: 1.04fr 0.96fr;
+  /* Inherit the viewport-filling height the base `.admin-root` rule sets
+     (calc(100vh / zoom)); a bare `height: 100%` here collapses to content
+     height because `#root` has no definite height. */
+  min-height: calc(100vh / var(--root-zoom));
+  background: var(--c-bg);
+  overflow: hidden;
+  letter-spacing: -0.005em;
+}
+
+/* Brand canvas (left) */
+.admin-root .login-hero {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: clamp(36px, 4.4vw, 64px);
+  color: #fbeef0;
+  isolation: isolate;
+  background: radial-gradient(118% 78% at 16% 8%, rgba(210, 90, 110, 0.28), transparent 56%),
+    radial-gradient(96% 96% at 92% 104%, rgba(36, 8, 14, 0.92), transparent 60%),
+    linear-gradient(152deg, #2e0a12 0%, #4a0f1c 46%, #240810 100%);
+}
+/* Fading coordinate graticule, masked so it dissolves toward the bottom-
+   right, leaving the title legible. */
+.admin-root .login-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image: repeating-linear-gradient(
+      0deg,
+      rgba(240, 200, 206, 0.08) 0 1px,
+      transparent 1px 66px
+    ), repeating-linear-gradient(90deg, rgba(240, 200, 206, 0.08) 0 1px, transparent 1px 66px);
+  -webkit-mask-image: radial-gradient(135% 110% at 26% 16%, #000 0%, transparent 76%);
+  mask-image: radial-gradient(135% 110% at 26% 16%, #000 0%, transparent 76%);
+}
+/* Slow radar sweep: a soft diagonal light band drifting across the canvas. */
+.admin-root .login-hero::after {
+  content: "";
+  position: absolute;
+  inset: -25%;
+  z-index: -1;
+  background: linear-gradient(
+    115deg,
+    transparent 42%,
+    rgba(225, 150, 160, 0.1) 50%,
+    transparent 58%
+  );
+  animation: login-sweep 11s ease-in-out infinite;
+}
+@keyframes login-sweep {
+  0%,
+  100% {
+    transform: translateX(-26%);
+  }
+  50% {
+    transform: translateX(26%);
+  }
+}
+/* Topographic contour rings, anchored off the lower-right corner. */
+.admin-root .login-topo {
+  position: absolute;
+  z-index: -1;
+  right: -14%;
+  bottom: -20%;
+  width: min(86%, 660px);
+  height: auto;
+  color: rgba(225, 150, 160, 0.55);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.admin-root .login-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+.admin-root .login-brand-logo {
+  width: 64px;
+  height: 64px;
+  border-radius: 14px;
+  display: block;
+  border: 1px solid rgba(240, 200, 206, 0.35);
+  box-shadow: 0 6px 18px rgba(30, 6, 12, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+.admin-root .login-brand-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.admin-root .login-brand-name {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #fff;
+  line-height: 1.1;
+}
+.admin-root .login-brand-tag {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(240, 200, 206, 0.72);
+}
+
+/* Centered in the canvas: title + capability rows sit in the breathing room
+   between the brand and the contour rings. */
+.admin-root .login-hero-mid {
+  max-width: 32ch;
+  margin-block: auto;
+}
+.admin-root .login-hero-title {
+  margin: 0;
+  font-size: clamp(28px, 3vw, 40px);
+  font-weight: 600;
+  line-height: 1.08;
+  letter-spacing: -0.025em;
+  color: #fff;
+  text-wrap: balance;
+}
+.admin-root .login-hero-title em {
+  font-style: normal;
+  color: #e89aa4;
+}
+/* Capability rows: icon chips + short labels. */
+.admin-root .login-caps {
+  list-style: none;
+  margin: 30px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+.admin-root .login-cap {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.005em;
+  color: rgba(245, 224, 228, 0.9);
+  white-space: nowrap;
+}
+.admin-root .login-cap-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  color: #e89aa4;
+  background: rgba(225, 150, 160, 0.1);
+  border: 1px solid rgba(225, 150, 160, 0.24);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+
+/* Form column (right) */
+.admin-root .login-form-col {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(28px, 4vw, 56px);
+  background: var(--c-bg);
+}
+.admin-root .login-form {
+  width: 100%;
+  max-width: 372px;
+  display: flex;
+  flex-direction: column;
+}
+.admin-root .login-form-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--c-ink-4);
+  margin: 0 0 10px;
+}
+.admin-root .login-form h1 {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: -0.028em;
+  line-height: 1.05;
+  color: var(--c-ink);
+}
+/* Deep-ink anchor rule, as on `.page-hero`. */
+.admin-root .login-rule {
+  height: 2px;
+  width: 40px;
+  background: var(--c-rule-strong);
+  border-radius: 2px;
+  margin: 18px 0 24px;
+}
+:root[data-theme="dark"] .admin-root .login-rule {
+  background: var(--c-blue-700);
+}
+
+.admin-root .login-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-bottom: 16px;
+}
+.admin-root .login-field > span {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--c-ink-2);
+}
+.admin-root .login-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.admin-root .login-input-wrap > svg.login-input-icon {
+  position: absolute;
+  left: 13px;
+  color: var(--c-ink-4);
+  pointer-events: none;
+  transition: color 130ms ease;
+}
+.admin-root .login-input {
+  width: 100%;
+  padding: 12px 14px 12px 40px;
+  border: 1px solid var(--c-line);
+  border-radius: 9px;
+  font-size: 14.5px;
+  font-family: inherit;
+  background: var(--c-card);
+  color: var(--c-ink);
+  outline: none;
+  transition: border-color 130ms ease, box-shadow 130ms ease, background 130ms ease;
+}
+.admin-root .login-input::placeholder {
+  color: var(--c-ink-4);
+}
+.admin-root .login-input.has-reveal {
+  padding-right: 42px;
+}
+.admin-root .login-input:focus {
+  border-color: var(--c-blue-600);
+  box-shadow: 0 0 0 3px var(--c-blue-100);
+  background: var(--c-card);
+}
+.admin-root .login-input-wrap:focus-within > svg.login-input-icon {
+  color: var(--c-blue-600);
+}
+.admin-root .login-reveal {
+  position: absolute;
+  right: 6px;
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--c-ink-4);
+  cursor: pointer;
+  transition: color 120ms ease, background 120ms ease;
+}
+.admin-root .login-reveal:hover {
+  color: var(--c-blue-700);
+  background: var(--c-blue-50);
+}
+.admin-root .login-reveal:focus-visible {
+  outline: none;
+  color: var(--c-blue-700);
+  box-shadow: 0 0 0 2px var(--c-blue-200);
+}
+
+.admin-root .login-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: var(--c-danger);
+  font-size: 13px;
+  line-height: 1.4;
+  background: var(--c-danger-bg);
+  border: 1px solid color-mix(in srgb, var(--c-danger) 28%, transparent);
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.admin-root .login-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  width: 100%;
+  padding: 13px 16px;
+  border: 0;
+  border-radius: 9px;
+  font-size: 14.5px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  color: #fff;
+  background: var(--c-blue-700);
+  cursor: pointer;
+  transition: background 130ms ease, transform 90ms ease, box-shadow 130ms ease;
+}
+.admin-root .login-submit:not(:disabled):hover {
+  background: var(--c-blue-800);
+  box-shadow: 0 8px 22px rgba(154, 31, 51, 0.28);
+}
+.admin-root .login-submit:not(:disabled):active {
+  transform: translateY(1px);
+}
+.admin-root .login-submit:disabled {
+  background: var(--c-blue-300);
+  cursor: not-allowed;
+}
+:root[data-theme="dark"] .admin-root .login-submit:not(:disabled) {
+  background: #8a2536;
+}
+:root[data-theme="dark"] .admin-root .login-submit:not(:disabled):hover {
+  background: #a32d42;
+}
+.admin-root .login-submit svg {
+  transition: transform 140ms ease;
+}
+.admin-root .login-submit:not(:disabled):hover svg {
+  transform: translateX(3px);
+}
+/* Staggered page-load reveal. */
+.admin-root .login-rise {
+  opacity: 0;
+  animation: login-rise 560ms cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
+}
+@keyframes login-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-root .login-hero::after {
+    animation: none;
+  }
+  .admin-root .login-rise {
+    opacity: 1;
+    animation: none;
+  }
+}
+
+/* Stack on narrow viewports: the brand canvas folds to a compact top band. */
+@media (max-width: 860px) {
+  .admin-root.login-screen {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+    overflow: auto;
+  }
+  .admin-root .login-hero {
+    padding: 28px;
+    gap: 22px;
+  }
+  .admin-root .login-hero-mid {
+    max-width: none;
+  }
+  .admin-root .login-topo {
+    opacity: 0.3;
+  }
+}
+
+/* =====================================================================
+   COORDINATOR DASHBOARD: filter bar, analytics panel, AI-panel header,
+   map overlays + tooltips. Mapped onto the admin --c-* tokens so it flips
+   with the theme.
+   ===================================================================== */
+
+/* --- Filter bar: semantic search + strictness + filter pills + location
+   + draw + live count + reset. One full-width strip under the hero. ----- */
+.admin-root .filterbar {
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--c-line);
+  background: var(--c-card);
+  padding: 9px 24px;
+}
+.admin-root .filterbar .filt-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.admin-root .filt-lead {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--c-ink-4);
+}
+.admin-root .fsep {
+  width: 1px;
+  height: 20px;
+  background: var(--c-line);
+  flex: 0 0 auto;
+}
+.admin-root .dash-count {
+  margin-inline-start: auto;
+  font-size: 12px;
+  color: var(--c-ink-3);
+  white-space: nowrap;
+}
+.admin-root .dash-count b {
+  color: var(--c-ink);
+  font-weight: 700;
+  font-family: var(--font-mono);
+  font-feature-settings: "tnum";
+}
+.admin-root .dash-count .sep {
+  color: var(--c-line);
+  margin: 0 7px;
+}
+.admin-root .dash-reset {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--c-blue-700);
+  font-weight: 600;
+  font-size: 12px;
+  padding: 6px 9px;
+  border: 0;
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.admin-root .dash-reset:hover {
+  background: var(--c-blue-50);
+}
+
+/* Semantic search field: the leading purple chip both labels the search
+   as AI/meaning-based and is the tooltip affordance (it is NOT a toggle:
+   the platform is semantic-only). */
+.admin-root .dash-search {
+  position: relative;
+  flex: 0 1 380px;
+  min-width: 248px;
+}
+.admin-root .dash-search > input {
+  width: 100%;
+  height: 34px;
+  border: 1px solid var(--c-line);
+  border-radius: 8px;
+  padding: 0 30px 0 112px;
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--c-ink);
+  background: var(--c-card);
+}
+.admin-root .dash-search > input::placeholder {
+  color: var(--c-ink-4);
+}
+.admin-root .dash-search > input:focus {
+  outline: none;
+  border-color: var(--ai);
+  box-shadow: 0 0 0 3px var(--ai-bg);
+}
+.admin-root .se-clear {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  border-radius: 50%;
+  color: var(--c-ink-4);
+  cursor: pointer;
+}
+.admin-root .se-clear:hover {
+  background: var(--c-line-2);
+  color: var(--c-ink-2);
+}
+
+/* --- Info tooltip: a small affordance that reveals an explanatory
+   popover on hover/focus. Used on the semantic-search chip, the strictness
+   control, anomalies, and KPI cells. ----------------------------------- */
+.admin-root .info-tip {
+  position: relative;
+  display: inline-flex;
+}
+.admin-root .info-tip-dot {
+  display: inline-grid;
+  place-items: center;
+  width: 14px;
+  height: 14px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--c-line);
+  background: var(--c-card);
+  color: var(--c-ink-4);
+  font-size: 9.5px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: help;
+  flex: 0 0 auto;
+}
+.admin-root .info-tip-pop {
+  position: absolute;
+  z-index: 80;
+  top: calc(100% + 7px);
+  left: 0;
+  width: 232px;
+  padding: 9px 11px;
+  background: var(--c-ink);
+  color: #fff;
+  border-radius: 8px;
+  font-size: 11.5px;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0;
+  text-transform: none;
+  box-shadow: 0 10px 30px rgba(10, 16, 28, 0.3);
+}
+.admin-root .info-tip-pop.align-end {
+  left: auto;
+  right: 0;
+}
+.admin-root .info-tip-pop b {
+  color: #fff;
+  font-weight: 700;
+}
+:root[data-theme="dark"] .admin-root .info-tip-pop {
+  background: #f0f2f6;
+  color: #0d1117;
+}
+:root[data-theme="dark"] .admin-root .info-tip-pop b {
+  color: #0d1117;
+}
+/* Card-surface variant (opt-in via the `surface` prop): light in light mode,
+   dark in dark mode, matching the dashboard KPI tooltips. The `--c-*` tokens
+   already invert per theme; the dark rules below only exist to out-specify the
+   inverted defaults above. */
+.admin-root .info-tip-pop.surface {
+  background: var(--c-card);
+  color: var(--c-ink);
+  border: 1px solid var(--c-line);
+}
+.admin-root .info-tip-pop.surface b {
+  color: var(--c-ink);
+}
+:root[data-theme="dark"] .admin-root .info-tip-pop.surface {
+  background: var(--c-card);
+  color: var(--c-ink);
+}
+:root[data-theme="dark"] .admin-root .info-tip-pop.surface b {
+  color: var(--c-ink);
+}
+
+/* --- Chart hover tooltip (shared by all four charts) -------------------- */
+.admin-root .chart-tip {
+  position: absolute;
+  z-index: 90;
+  pointer-events: none;
+  background: var(--c-ink);
+  color: #fff;
+  border-radius: 7px;
+  padding: 7px 9px;
+  font-size: 11px;
+  line-height: 1.45;
+  box-shadow: 0 8px 24px rgba(10, 16, 28, 0.32);
+  transform: translate(-50%, -100%);
+  white-space: nowrap;
+}
+.admin-root .chart-tip .ct-title {
+  font-weight: 700;
+  margin-bottom: 3px;
+}
+.admin-root .chart-tip .ct-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.admin-root .chart-tip .ct-row .ct-sw {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  flex: 0 0 auto;
+}
+.admin-root .chart-tip .ct-row .ct-n {
+  margin-inline-start: auto;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+  font-weight: 700;
+  padding-inline-start: 12px;
+}
+:root[data-theme="dark"] .admin-root .chart-tip {
+  background: #f0f2f6;
+  color: #0d1117;
+}
+
+/* ==========================================================================
+   COORDINATOR DASHBOARD. Every rule is scoped to .dash-root so the generic
+   class names (.sec, .legend, .count, .facet, .panel ...) don't leak into the
+   rest of the admin app. Semantic aliases map onto the --c-* tokens so the
+   design flips with the theme.
+   ========================================================================== */
+.admin-root .dash-root {
+  --ink: var(--c-ink);
+  --ink-2: var(--c-ink-2);
+  --muted: var(--c-ink-3);
+  --faint: var(--c-ink-4);
+  --line: var(--c-line);
+  --line-2: var(--c-line-2);
+  --line-strong: #cfcabb;
+  --bg-sub: var(--c-surface);
+  --page: var(--c-bg);
+  --panel: var(--c-bg);
+  --elevated: var(--c-card);
+  --navy: var(--c-blue-900);
+  --blue: var(--c-blue-700);
+  --blue-ink: var(--c-blue-800);
+  --blue-50: var(--c-blue-100);
+  --slate: #7c8597;
+  --complete: var(--sev-complete);
+  --partial: var(--sev-partial);
+  --minimal: var(--sev-minimal);
+  /* Location-quality palette for the Locations cell + off-map notice.
+     Deliberately NOT the damage colors: this encodes position, not severity.
+     blue = exact (GPS/building), amber = AI-located, grey = no location. */
+  --loc-exact: var(--c-blue-700);
+  --loc-ai: var(--sev-partial);
+  --loc-none: #b3ab98;
+  /* Sourced from the shared blue tokens so it flips in dark mode. */
+  --accent: var(--c-blue-700);
+  --accent-press: var(--c-blue-800);
+  --on-accent: #fff;
+  /* Cumulative-total line on "Reports over time". A real blue (NOT --accent,
+     the admin maroon) to match the caption that calls it "the blue line". */
+  --chart-cum: #1670c2;
+  --map-scrim: rgba(247, 245, 239, 0.42);
+  --r: 6px;
+
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--page);
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.45;
+  /* positioning context for portalled chart tooltips (see ChartTooltip) */
+  position: relative;
+}
+:root[data-theme="dark"] .admin-root .dash-root {
+  --line-strong: #37414d;
+  --slate: #8b96a6;
+  --map-scrim: rgba(14, 18, 24, 0.32);
+  --loc-none: #4a525e;
+  /* Lighter blue so the cumulative line stays legible on the dark surface. */
+  --chart-cum: #7fc1f0;
+}
+.admin-root .dash-root .num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* Button reset for the dashboard's segmented controls, which otherwise fall
+   back to native UA chrome. `:where()` keeps it at zero specificity so every
+   explicit rule still wins. Scoped to `.dash-root`. */
+:where(.admin-root .dash-root button) {
+  border: 0;
+  background: none;
+  padding: 0;
+  color: inherit;
+}
+
+/* ===================== FILTER BAR ===================== */
+/* Compact single-row title hero shared by the dashboard, analysis, Staff
+   Accounts and Crises pages, so every hero bar is identical. Horizontal
+   padding and the anchor rule come from `.page-hero`. Applied via
+   `class="page-hero is-compact"`. */
+.admin-root .page-hero.is-compact {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+.admin-root .page-hero.is-compact h1 {
+  font-size: 19px;
+}
+.admin-root .dash-root .filterbar {
+  flex: 0 0 auto;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+  padding: 9px 16px;
+  /* The search/strictness `.tip-pop` cards overhang downward into the KPI
+     ribbon directly below. The ribbon carries `z-index: 10` (so its own
+     tooltips clear the body), which would otherwise paint over these. Lift the
+     whole filter bar one level above the ribbon so its tooltips stay on top;
+     its own dropdowns live inside it, so they still overlay the ribbon + map. */
+  position: relative;
+  z-index: 11;
+}
+.admin-root .dash-root .filt-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  row-gap: 8px;
+}
+
+/* ── crisis chooser: a compact pill (icon + name + region + status + caret)
+   that opens a dropdown with the status filter and the crisis list. ── */
+.admin-root .dash-root .crisis-wrap {
+  position: relative;
+  flex: 0 0 auto;
+}
+.admin-root .dash-root .crisis {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  height: 34px;
+  padding: 0 9px 0 5px;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  background: var(--elevated);
+  color: var(--ink-2);
+  box-shadow: var(--shadow-1, 0 1px 2px rgba(20, 24, 36, 0.05));
+}
+.admin-root .dash-root .crisis:hover:not(:disabled) {
+  border-color: var(--slate);
+}
+.admin-root .dash-root .crisis:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.admin-root .dash-root .crisis .ic {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  background: var(--c-blue-50);
+  color: var(--blue);
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+}
+.admin-root .dash-root .crisis .ic svg {
+  width: 15px;
+  height: 15px;
+}
+.admin-root .dash-root .crisis .nm {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  font-size: 13.5px;
+  white-space: nowrap;
+  min-width: 0;
+}
+.admin-root .dash-root .crisis .nm b {
+  font-weight: 600;
+  color: var(--ink);
+  max-width: 22ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.admin-root .dash-root .crisis .nm .reg {
+  color: var(--muted);
+  font-size: 12.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+.admin-root .dash-root .crisis .car {
+  width: 14px;
+  height: 14px;
+  color: var(--faint);
+  margin-left: 1px;
+  flex: 0 0 auto;
+  transition: transform 0.15s ease;
+}
+.admin-root .dash-root .crisis[aria-expanded="true"] .car {
+  transform: rotate(180deg);
+}
+/* status pill (shared by the trigger + the list rows) */
+/* Same metrics as the shared admin `.chip` so a crisis's status reads
+   identically on the dashboard and in the Crises navigator. */
+.admin-root .dash-root .pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  font-weight: 500;
+  padding: 3px 9px;
+  border: 1px solid var(--c-line);
+  border-radius: 999px;
+  white-space: nowrap;
+  flex: 0 0 auto;
+  text-transform: capitalize;
+}
+.admin-root .dash-root .pill .d {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.admin-root .dash-root .pill.live {
+  color: var(--c-safe);
+  background: var(--c-safe-bg);
+  border-color: var(--c-safe-bg);
+}
+.admin-root .dash-root .pill.inactive {
+  color: var(--c-warn);
+  background: var(--c-warn-bg);
+  border-color: var(--c-warn-bg);
+}
+.admin-root .dash-root .pill.archived {
+  color: var(--muted);
+  background: var(--line-2);
+  border-color: var(--line-2);
+}
+/* dropdown */
+.admin-root .dash-root .crisis-menu {
+  position: absolute;
+  top: calc(100% + 7px);
+  left: 0;
+  z-index: 50;
+  width: 312px;
+  max-width: 90vw;
+  background: var(--elevated);
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  box-shadow: var(--shadow-2, 0 8px 28px rgba(20, 24, 36, 0.16));
+  overflow: hidden;
+}
+.admin-root .dash-root .cm-seg {
+  display: flex;
+  gap: 4px;
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--line-2);
+}
+.admin-root .dash-root .cm-seg button {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  height: 26px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.admin-root .dash-root .cm-seg button .num {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--faint);
+}
+.admin-root .dash-root .cm-seg button:hover {
+  background: var(--line-2);
+}
+.admin-root .dash-root .cm-seg button.on {
+  background: var(--c-blue-50);
+  color: var(--blue-ink);
+}
+.admin-root .dash-root .cm-seg button.on .num {
+  color: var(--blue);
+}
+.admin-root .dash-root .cm-search {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 11px;
+  border-bottom: 1px solid var(--line-2);
+  color: var(--faint);
+}
+.admin-root .dash-root .cm-search > svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+.admin-root .dash-root .cm-search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  color: var(--ink);
+  outline: none;
+}
+.admin-root .dash-root .cm-search input::placeholder {
+  color: var(--faint);
+}
+.admin-root .dash-root .cm-list {
+  padding: 6px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+.admin-root .dash-root .cm-empty {
+  padding: 14px 9px;
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--faint);
+}
+.admin-root .dash-root .cm-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  text-align: left;
+  padding: 8px 9px;
+  border-radius: 7px;
+}
+.admin-root .dash-root .cm-item:hover {
+  background: var(--c-blue-50);
+}
+.admin-root .dash-root .cm-item .ic {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  background: var(--bg-sub);
+  color: var(--ink-3);
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+}
+.admin-root .dash-root .cm-item .ic svg {
+  width: 15px;
+  height: 15px;
+}
+.admin-root .dash-root .cm-item .t {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+  min-width: 0;
+}
+.admin-root .dash-root .cm-item .t b {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.admin-root .dash-root .cm-item .t small {
+  font-size: 11.5px;
+  color: var(--muted);
+  text-transform: capitalize;
+}
+.admin-root .dash-root .cm-item .pill {
+  margin-left: auto;
+}
+.admin-root .dash-root .cm-item.sel {
+  background: var(--c-blue-50);
+}
+.admin-root .dash-root .cm-item.sel .ic {
+  background: var(--c-blue-100);
+  color: var(--blue);
+}
+.admin-root .dash-root .cm-item .chk {
+  width: 16px;
+  height: 16px;
+  color: var(--blue);
+  flex: 0 0 auto;
+  display: none;
+}
+.admin-root .dash-root .cm-item.sel .chk {
+  display: block;
+}
+.admin-root .dash-root .cm-item.sel .pill {
+  margin-left: 6px;
+}
+
+.admin-root .dash-root .search {
+  position: relative;
+  flex: 0 1 384px;
+  min-width: 264px;
+}
+/* Below ~1800px the semantic box gives up width first so the structured
+   facets keep fitting on a single row (target: a 16" laptop, ~1728 CSS px).
+   The box never drops below a usable min. */
+@media (max-width: 1800px) {
+  .admin-root .dash-root .search {
+    flex-basis: 288px;
+    min-width: 224px;
+  }
+}
+@media (max-width: 1480px) {
+  .admin-root .dash-root .search {
+    flex-basis: 248px;
+    min-width: 208px;
+  }
+}
+.admin-root .dash-root .search input {
+  width: 100%;
+  height: 34px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r);
+  padding: 0 30px 0 102px;
+  font: inherit;
+  font-size: 13.5px;
+  color: var(--ink);
+  background: var(--elevated);
+}
+.admin-root .dash-root .search input::placeholder {
+  color: var(--faint);
+}
+.admin-root .dash-root .search input:focus {
+  outline: none;
+  border-color: var(--ai);
+  box-shadow: 0 0 0 3px var(--ai-bg);
+}
+/* leading chip labels the search mode (semantic only, no keyword toggle) */
+.admin-root .dash-root .se-mode {
+  position: absolute;
+  left: 6px;
+  top: 50%;
+  /* The translate makes `.se-mode` a stacking context that would trap the help
+     tooltip below the positioned KPI cells. This z-index lifts it above them
+     while staying under the dropdown layers (50+). */
+  transform: translateY(-50%);
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 26px;
+  padding: 0 8px 0 5px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--ai);
+  background: var(--ai-bg);
+  cursor: help;
+  white-space: nowrap;
+}
+.admin-root .dash-root .se-mode svg {
+  width: 13px;
+  height: 13px;
+}
+.admin-root .dash-root .se-clear {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--faint);
+  cursor: pointer;
+}
+.admin-root .dash-root .se-clear:hover {
+  background: var(--line-2);
+  color: var(--ink-2);
+}
+.admin-root .dash-root .se-clear svg {
+  width: 12px;
+  height: 12px;
+}
+/* Pending-commit affordance: the semantic query only runs on Enter, so while
+   the draft differs from the committed query we ring the box and surface an
+   "↵ Enter" hint just left of the clear button. */
+.admin-root .dash-root .search.dirty input {
+  border-color: var(--ai);
+  box-shadow: 0 0 0 3px var(--ai-bg);
+  padding-right: 84px;
+}
+.admin-root .dash-root .se-enter {
+  position: absolute;
+  right: 30px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 7px;
+  border-radius: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ai);
+  background: var(--ai-bg);
+  white-space: nowrap;
+  pointer-events: none;
+}
+.admin-root .dash-root .filt-lead {
+  align-self: center;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--faint);
+}
+/* Drop the decorative "Filters" caption on narrower viewports so the
+   structured facets keep their single row (the box already gave up width
+   first). The facets are self-evident without it. */
+@media (max-width: 1800px) {
+  .admin-root .dash-root .filt-lead {
+    display: none;
+  }
+}
+/* Groups the structured facet pills so the walkthrough can spotlight them as a
+   set (the "Filters" caption above is hidden on most viewports). Mirrors the
+   row's own flex gap so the layout is unchanged. */
+.admin-root .dash-root .filt-facets {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  row-gap: 8px;
+}
+.admin-root .dash-root .fsep {
+  width: 1px;
+  height: 20px;
+  background: var(--line);
+  margin: 0 3px;
+  flex: 0 0 auto;
+}
+.admin-root .dash-root .facet {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r);
+  color: var(--ink-2);
+  font-size: 13.5px;
+  white-space: nowrap;
+  background: var(--elevated);
+  cursor: pointer;
+  font-family: inherit;
+}
+.admin-root .dash-root .facet:hover {
+  border-color: var(--slate);
+  background: var(--bg-sub);
+}
+.admin-root .dash-root .facet .lead {
+  color: var(--muted);
+}
+.admin-root .dash-root .facet b {
+  color: var(--ink);
+  font-weight: 600;
+  max-width: 130px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.admin-root .dash-root .facet .car {
+  width: 12px;
+  height: 12px;
+  color: var(--faint);
+}
+.admin-root .dash-root .facet .ic {
+  width: 14px;
+  height: 14px;
+  color: var(--muted);
+  flex: 0 0 auto;
+}
+.admin-root .dash-root .facet.on {
+  border-color: #bcd6ee;
+  background: var(--blue-50);
+  color: var(--blue-ink);
+}
+.admin-root .dash-root .facet.on .ic {
+  color: var(--blue);
+}
+.admin-root .dash-root .facet.on .car {
+  color: var(--blue);
+}
+.admin-root .dash-root .facet .x {
+  margin-left: 1px;
+  color: var(--blue);
+  font-size: 14px;
+  line-height: 1;
+  display: inline-flex;
+  padding: 2px;
+  border-radius: 4px;
+}
+.admin-root .dash-root .facet .x:hover {
+  background: rgba(154, 31, 51, 0.14);
+}
+.admin-root .dash-root .facet.draw .ic {
+  color: var(--slate);
+}
+.admin-root .dash-root .facet.draw.armed {
+  border-color: var(--navy);
+  background: var(--navy);
+  color: #fff;
+}
+.admin-root .dash-root .facet.draw.armed .ic {
+  color: #fff;
+}
+/* strictness segment (semantic-only search keeps loose/balanced/strict) */
+.admin-root .dash-root .strict-seg {
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r);
+  /* `visible` (not `hidden`) so each button's `.tip-pop` card can escape the
+     control; corners are rounded on the first/last buttons instead. */
+  overflow: visible;
+  background: var(--elevated);
+}
+.admin-root .dash-root .strict-seg button {
+  position: relative;
+  height: 100%;
+  padding: 0 10px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--muted);
+  border-right: 1px solid var(--line-2);
+  cursor: pointer;
+  font-family: inherit;
+}
+.admin-root .dash-root .strict-seg button:first-child {
+  border-top-left-radius: calc(var(--r) - 1px);
+  border-bottom-left-radius: calc(var(--r) - 1px);
+}
+.admin-root .dash-root .strict-seg button:last-child {
+  border-right: 0;
+  border-top-right-radius: calc(var(--r) - 1px);
+  border-bottom-right-radius: calc(var(--r) - 1px);
+}
+.admin-root .dash-root .strict-seg button:hover:not(.on) {
+  background: var(--line-2);
+}
+.admin-root .dash-root .strict-seg button.on {
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 600;
+}
+.admin-root .dash-root .count {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 13px;
+  white-space: nowrap;
+}
+.admin-root .dash-root .count b {
+  color: var(--ink);
+  font-weight: 600;
+}
+.admin-root .dash-root .count .sep {
+  color: var(--line-strong);
+  margin: 0 7px;
+}
+.admin-root .dash-root .reset {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--blue);
+  font-weight: 600;
+  font-size: 13px;
+  padding: 6px 9px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.admin-root .dash-root .reset:hover {
+  background: var(--blue-50);
+}
+.admin-root .dash-root .reset svg {
+  width: 12px;
+  height: 12px;
+}
+/* facet popover */
+.admin-root .dash-root .facet-pop {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 60;
+  min-width: 210px;
+  background: var(--elevated);
+  border: 1px solid var(--line-strong);
+  border-radius: 9px;
+  box-shadow: var(--shadow-2);
+  padding: 5px;
+}
+.admin-root .dash-root .facet-pop.align-end {
+  left: auto;
+  right: 0;
+}
+
+/* ===================== KPI RIBBON ===================== */
+.admin-root .dash-root .kpibar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: stretch;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+  /* The ribbon's `.tip-pop` cards overhang into the body. While recomputing,
+     the `opacity` dim makes the ribbon a z-index:auto stacking context that
+     paints BEHIND the later `.body`; an explicit z-index keeps its tooltips on
+     top either way. */
+  position: relative;
+  z-index: 10;
+}
+
+/* ── Stats "computing" affordance ───────────────────────────────────────
+   KPI + analytics figures come from a slow aggregation that lags the map
+   count. While it recomputes, the last values stay visible but dimmed under
+   an indeterminate sweep (plus a "Calculating" chip on the ribbon). */
+.admin-root .dash-root .calc-wrap {
+  position: relative;
+  flex: 0 0 auto;
+}
+.admin-root .dash-root .calc-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 2px;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 5;
+  background: var(--line);
+}
+.admin-root .dash-root .calc-bar.is-sticky {
+  position: sticky;
+}
+.admin-root .dash-root .calc-bar::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 30%;
+  background: linear-gradient(90deg, transparent, var(--blue), transparent);
+  animation: calc-sweep 1.15s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+@keyframes calc-sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(433%);
+  }
+}
+.admin-root .dash-root .calc-chip {
+  position: absolute;
+  top: 9px;
+  right: 12px;
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 11px 4px 9px;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  color: var(--blue);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  box-shadow: var(--shadow-1);
+  /* Purely a visual overlay: clicks/hovers fall through to the dimmed cell
+     beneath (e.g. the Location-data info tooltip stays reachable). */
+  pointer-events: none;
+}
+.admin-root .dash-root .calc-chip .d {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: calc-blink 1s ease-in-out infinite;
+}
+@keyframes calc-blink {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .admin-root .dash-root .calc-bar::before,
+  .admin-root .dash-root .calc-chip .d {
+    animation: none;
+  }
+}
+
+.admin-root .dash-root .kpi {
+  flex: 1;
+  padding: 9px 16px;
+  border-right: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+}
+.admin-root .dash-root .kpi:last-child {
+  border-right: 0;
+}
+/* Count cells carry `.has-tip` so the shared `view / crisis` explainer can
+   anchor to the cell and fade in on hover/focus (the `.tip-pop` card below). */
+.admin-root .dash-root .kpi.has-tip {
+  position: relative;
+  cursor: help;
+}
+.admin-root .dash-root .kpi .lab {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  font-weight: 600;
+}
+.admin-root .dash-root .kpi .row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 3px;
+}
+.admin-root .dash-root .kpi .val {
+  font-size: 22.5px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: var(--ink);
+}
+.admin-root .dash-root .kpi .val small {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 0;
+}
+.admin-root .dash-root .kpi .delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--blue);
+}
+.admin-root .dash-root .kpi .delta svg {
+  width: 11px;
+  height: 11px;
+}
+.admin-root .dash-root .kpi .sub {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 3px;
+  /* Reserve the line so a cell with no sub (e.g. Unique devices) stays the
+     same height as its neighbours and the values line up across the ribbon. */
+  min-height: 14px;
+}
+.admin-root .dash-root .kpi .sub b {
+  color: var(--ink-2);
+  font-weight: 600;
+}
+
+/* ---- Locations cell: tri-segment data-quality bar + labeled counts ---- */
+.admin-root .dash-root .kpi.loc {
+  flex: 1.5;
+}
+.admin-root .dash-root .kpi .lab .lab-info {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--faint);
+  cursor: help;
+}
+.admin-root .dash-root .kpi .lab .lab-info svg {
+  width: 12px;
+  height: 12px;
+}
+.admin-root .dash-root .kpi .lab .lab-info:hover,
+.admin-root .dash-root .kpi .lab .lab-info:focus-visible {
+  color: var(--blue);
+}
+
+/* ---- Reusable hover/focus tooltip (KPI ribbon info + semantic chip) ----
+   The host carries `.has-tip` and must be a positioning context. The
+   `.tip-pop` child fades in on hover/focus. Left-anchored by default; `.right`
+   flips it for hosts near the viewport's right edge. */
+.admin-root .dash-root .tip-pop {
+  position: absolute;
+  top: calc(100% + 9px);
+  left: -8px;
+  z-index: 70;
+  width: 272px;
+  padding: 11px 13px;
+  background: var(--elevated);
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  box-shadow: var(--shadow-2);
+  text-align: left;
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 400;
+  /* The semantic host sets `white-space: nowrap`; without this reset the
+     tooltip copy inherits it and runs out of the card. */
+  white-space: normal;
+  color: var(--ink-2);
+  opacity: 0;
+  visibility: hidden;
+  /* translate3d (not translateY) forces a GPU layer so the card stacks above
+     the always-composited WebGL map canvas, which otherwise paints over it
+     while repainting. */
+  transform: translate3d(0, -3px, 0);
+  transition: opacity 0.14s ease, transform 0.14s ease, visibility 0.14s;
+  pointer-events: none;
+}
+.admin-root .dash-root .tip-pop.right {
+  left: auto;
+  right: -8px;
+}
+/* The leftmost KPI cell is flush with the band's edge, so the default
+   `left: -8px` overhang would push its card off-screen. Anchor it to the
+   cell's left edge instead. */
+.admin-root .dash-root .kpibar .kpi:first-child .tip-pop {
+  left: 0;
+}
+/* `:focus-visible` (not `:focus-within`): keyboard focus reveals the tip, but
+   a mouse click on a focusable host (strictness buttons) does not, so the tip
+   dismisses once a strictness is picked. */
+.admin-root .dash-root .has-tip:hover .tip-pop,
+.admin-root .dash-root .has-tip:focus-visible .tip-pop {
+  opacity: 1;
+  visibility: visible;
+  transform: translate3d(0, 0, 0);
+}
+.admin-root .dash-root .tip-pop::before {
+  content: "";
+  position: absolute;
+  top: -5px;
+  left: 13px;
+  width: 9px;
+  height: 9px;
+  background: var(--elevated);
+  border-top: 1px solid var(--line-strong);
+  border-left: 1px solid var(--line-strong);
+  transform: rotate(45deg);
+}
+.admin-root .dash-root .tip-pop.right::before {
+  left: auto;
+  right: 11px;
+}
+.admin-root .dash-root .tip-pop .tip-h {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.admin-root .dash-root .tip-pop .tip-text {
+  font-size: 12px;
+  line-height: 1.5;
+}
+.admin-root .dash-root .tip-pop .tip-row {
+  display: flex;
+  gap: 7px;
+  font-size: 12px;
+  line-height: 1.45;
+}
+.admin-root .dash-root .tip-pop .tip-row + .tip-row {
+  margin-top: 6px;
+}
+.admin-root .dash-root .tip-pop b {
+  font-weight: 600;
+  color: var(--ink);
+}
+.admin-root .dash-root .tip-pop .tip-row .sw {
+  flex: 0 0 auto;
+  width: 9px;
+  height: 9px;
+  margin-top: 3px;
+  border-radius: 2px;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 18%, transparent);
+}
+.admin-root .dash-root .tip-pop .sw.exact {
+  background: var(--loc-exact);
+}
+.admin-root .dash-root .tip-pop .sw.ai {
+  background: var(--loc-ai);
+}
+.admin-root .dash-root .tip-pop .sw.none {
+  background: var(--loc-none);
+}
+.admin-root .dash-root .locbar {
+  display: flex;
+  height: 8px;
+  border-radius: 5px;
+  overflow: hidden;
+  background: var(--line-2);
+  margin: 7px 0;
+  gap: 1.5px;
+}
+.admin-root .dash-root .locbar > i {
+  display: block;
+  height: 100%;
+}
+.admin-root .dash-root .locbar .e {
+  background: var(--loc-exact);
+}
+.admin-root .dash-root .locbar .a {
+  background: var(--loc-ai);
+}
+.admin-root .dash-root .locbar .n {
+  background: var(--loc-none);
+}
+.admin-root .dash-root .loclegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px 13px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.admin-root .dash-root .loclegend .it {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  white-space: nowrap;
+}
+.admin-root .dash-root .loclegend .it b {
+  color: var(--ink);
+  font-weight: 700;
+}
+.admin-root .dash-root .loclegend .sw {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  align-self: center;
+  flex: 0 0 auto;
+}
+.admin-root .dash-root .loclegend .sw.exact {
+  background: var(--loc-exact);
+}
+.admin-root .dash-root .loclegend .sw.ai {
+  background: var(--loc-ai);
+}
+.admin-root .dash-root .loclegend .sw.none {
+  background: var(--loc-none);
+}
+
+/* ---- Off-map notice: quiet strip beneath the ribbon, map view only.
+   Explains why the view numbers sit below the whole-crisis denominators. ---- */
+.admin-root .dash-root .offbar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 16px;
+  font-size: 12.5px;
+  line-height: 1.3;
+  color: var(--ink-2);
+  background: color-mix(in srgb, var(--partial) 10%, var(--panel));
+  border-bottom: 1px solid var(--line);
+}
+.admin-root .dash-root .offbar .ic {
+  color: var(--partial);
+  flex: 0 0 auto;
+  display: inline-flex;
+}
+.admin-root .dash-root .offbar .ic svg {
+  width: 15px;
+  height: 15px;
+}
+.admin-root .dash-root .offbar b {
+  color: var(--ink);
+  font-weight: 700;
+}
+.admin-root .dash-root .offbar .more {
+  color: var(--muted);
+}
+
+/* ===================== BODY GRID ===================== */
+.admin-root .dash-root .body {
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: minmax(264px, 340px) 1fr minmax(326px, 420px);
+  min-height: 0;
+  background: var(--page);
+}
+.admin-root .dash-root .panel {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--panel);
+}
+.admin-root .dash-root .panel.left {
+  border-right: 1px solid var(--line);
+  overflow-y: auto;
+}
+.admin-root .dash-root .panel.left::-webkit-scrollbar {
+  width: 7px;
+}
+.admin-root .dash-root .panel.left::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+  border-radius: 7px;
+  border: 2px solid var(--panel);
+}
+.admin-root .dash-root .panel.right {
+  border-left: 1px solid var(--line);
+}
+.admin-root .dash-root .sec {
+  padding: 13px 14px;
+  /* Divider between charts; `--line` matches the panel's own edges. */
+  border-bottom: 1px solid var(--line);
+  /* Grow to share spare height, but never shrink below content height
+     (shrinking let the donut + legend overflow into the next section);
+     `.panel.left` scrolls instead. */
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+.admin-root .dash-root .sec:last-child {
+  border-bottom: 0;
+}
+.admin-root .dash-root .sec-h {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.admin-root .dash-root .sec-h h3 {
+  margin: 0;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.admin-root .dash-root .sec-h .meta {
+  font-size: 11.5px;
+  color: var(--faint);
+}
+.admin-root .dash-root .sec-empty {
+  flex: 1 1 auto;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--faint);
+  min-height: 56px;
+}
+/* weight extra height toward the line + bar charts; keep donut/debris compact */
+.admin-root .dash-root .panel.left .sec:nth-of-type(1) {
+  flex-grow: 1.15;
+}
+.admin-root .dash-root .panel.left .sec:nth-of-type(2) {
+  flex-grow: 0.95;
+}
+.admin-root .dash-root .panel.left .sec:nth-of-type(3) {
+  flex-grow: 0.7;
+}
+.admin-root .dash-root .panel.left .sec:nth-of-type(4) {
+  flex-grow: 1.5;
+}
+
+/* spark (reports over time) */
+.admin-root .dash-root .spark {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 56px;
+  display: flex;
+}
+.admin-root .dash-root .spark svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.admin-root .dash-root .spark .bar-hit {
+  fill: transparent;
+  cursor: pointer;
+}
+.admin-root .dash-root .spark .bar-hit:hover {
+  fill: rgba(154, 31, 51, 0.06);
+}
+.admin-root .dash-root .spark-cap {
+  flex: 0 0 auto;
+  font-size: 11.5px;
+  line-height: 1.35;
+  color: var(--faint);
+  margin-top: 6px;
+}
+.admin-root .dash-root .spark-cap b {
+  color: var(--ink-2);
+  font-weight: 600;
+}
+.admin-root .dash-root .fill-col {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 0;
+}
+
+/* donut */
+.admin-root .dash-root .donut-wrap {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  /* Let the legend drop below the ring rather than clipping its labels when the
+     panel is too narrow to fit both side by side. */
+  flex-wrap: wrap;
+  gap: 12px;
+  position: relative;
+}
+.admin-root .dash-root .donut-box {
+  /* The ring shrinks with the panel so the legend keeps room for its labels.
+     Width is clamped, aspect is square, max-height stops vertical overflow. */
+  flex: 0 1 auto;
+  width: clamp(72px, 42%, 158px);
+  aspect-ratio: 1 / 1;
+  max-height: 150px;
+  min-width: 0;
+  display: flex;
+}
+/* Donut legend only (the .legend class is shared with column layouts like the
+   debris bar, where a height basis would balloon the row). Basis ~150px so the
+   legend wraps below the ring at full panel width when the row is too narrow to
+   fit both side by side, keeping the severity labels intact. */
+.admin-root .dash-root .donut-wrap .legend {
+  flex: 1 1 150px;
+}
+.admin-root .dash-root .donut-c {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.admin-root .dash-root .donut-c .arc {
+  cursor: pointer;
+  transition: opacity 0.12s ease;
+}
+.admin-root .dash-root .donut-c .arc:hover {
+  opacity: 0.82;
+}
+.admin-root .dash-root .donut-c .n {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  fill: var(--ink);
+}
+.admin-root .dash-root .donut-c .l {
+  font-size: 9.5px;
+  fill: var(--muted);
+  font-weight: 500;
+}
+.admin-root .dash-root .legend {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  /* min-width:0 lets the legend shrink (flex default min-content overflowed and
+     clipped the percentage); the label (.nm) truncates instead. */
+  min-width: 0;
+}
+.admin-root .dash-root .legend .lr {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12.5px;
+  min-width: 0;
+}
+.admin-root .dash-root .legend .sw {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  flex: 0 0 auto;
+}
+.admin-root .dash-root .legend .nm {
+  color: var(--ink-2);
+  text-transform: capitalize;
+  /* The only element allowed to shrink: it truncates when the row is cramped so
+     the count and percentage are never clipped. */
+  min-width: 0;
+  flex: 0 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.admin-root .dash-root .legend .vl {
+  margin-left: auto;
+  color: var(--ink);
+  font-weight: 600;
+  flex: 0 0 auto;
+}
+.admin-root .dash-root .legend .pc {
+  color: var(--faint);
+  flex: 0 0 auto;
+  min-width: 34px;
+  text-align: right;
+}
+
+/* debris stack */
+.admin-root .dash-root .stat-lead {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  margin-bottom: 9px;
+}
+.admin-root .dash-root .stat-lead .n {
+  font-size: 18.5px;
+  font-weight: 700;
+  color: var(--partial);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.admin-root .dash-root .stat-lead .t {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.3;
+}
+.admin-root .dash-root .stat-lead .t b {
+  color: var(--ink-2);
+  font-weight: 600;
+}
+.admin-root .dash-root .stack {
+  display: flex;
+  height: 14px;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 9px;
+}
+.admin-root .dash-root .stack i {
+  display: block;
+  height: 100%;
+  cursor: pointer;
+}
+
+/* infrastructure bars */
+.admin-root .dash-root .ibars {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 7px;
+  position: relative;
+}
+.admin-root .dash-root .ibar-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  margin-bottom: 3px;
+}
+.admin-root .dash-root .ibar-top svg {
+  width: 12px;
+  height: 12px;
+  color: inherit;
+  flex: 0 0 auto;
+}
+.admin-root .dash-root .ibar-name {
+  color: var(--ink-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.admin-root .dash-root .ibar-v {
+  margin-left: auto;
+  font-weight: 600;
+  color: var(--ink);
+  flex: 0 0 auto;
+}
+.admin-root .dash-root .ibar-track {
+  height: 5px;
+  background: var(--line-2);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.admin-root .dash-root .ibar-track i {
+  display: block;
+  height: 100%;
+  border-radius: 99px;
+  background: currentColor;
+  min-width: 3px;
+}
+.admin-root .dash-root .ibar {
+  cursor: pointer;
+}
+
+/* ===================== CENTER STAGE ===================== */
+.admin-root .dash-root .panel.center {
+  position: relative;
+  background: var(--panel);
+}
+.admin-root .dash-root .stage-bar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 46px;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+}
+.admin-root .dash-root .stage-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.admin-root .dash-root .view-toggle {
+  display: flex;
+  background: var(--elevated);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r);
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(20, 24, 36, 0.08);
+}
+.admin-root .dash-root .view-toggle .vt {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 15px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-2);
+  cursor: pointer;
+  font-family: inherit;
+}
+.admin-root .dash-root .view-toggle .vt + .vt {
+  border-left: 1px solid var(--line-2);
+}
+.admin-root .dash-root .view-toggle .vt svg {
+  width: 14px;
+  height: 14px;
+  color: var(--muted);
+}
+.admin-root .dash-root .view-toggle .vt:not(.on):hover {
+  background: var(--line-2);
+}
+.admin-root .dash-root .view-toggle .vt.on {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.admin-root .dash-root .view-toggle .vt.on svg {
+  color: var(--on-accent);
+}
+/* map display-mode segmented control (points|heatmap|buildings|all) */
+.admin-root .dash-root .modes {
+  display: flex;
+  background: var(--elevated);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r);
+  overflow: hidden;
+}
+.admin-root .dash-root .modes button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 32px;
+  padding: 0 11px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--ink-2);
+  border-right: 1px solid var(--line-2);
+  cursor: pointer;
+  font-family: inherit;
+}
+.admin-root .dash-root .modes button:last-child {
+  border-right: 0;
+}
+.admin-root .dash-root .modes button svg {
+  width: 13px;
+  height: 13px;
+  color: var(--muted);
+}
+.admin-root .dash-root .modes button:hover {
+  background: var(--line-2);
+}
+.admin-root .dash-root .modes button.on {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.admin-root .dash-root .modes button.on svg {
+  color: var(--on-accent);
+}
+
+/* map stage + on-map legend overlay (the map provides its own zoom/draw) */
+.admin-root .dash-root .mapwrap {
+  position: relative;
+  overflow: hidden;
+  background: var(--c-surface);
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.admin-root .dash-root .mapwrap > .admin-map,
+.admin-root .dash-root .mapwrap > .admin-map-root {
+  position: absolute;
+  inset: 0;
+}
+.admin-root .dash-root .ov {
+  position: absolute;
+  z-index: 3;
+}
+.admin-root .dash-root .legend-map {
+  bottom: 12px;
+  left: 12px;
+  background: var(--elevated);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r);
+  padding: 9px 11px;
+  box-shadow: 0 1px 3px rgba(20, 24, 36, 0.12);
+}
+.admin-root .dash-root .legend-map .lgrp {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin: 0 0 5px;
+}
+.admin-root .dash-root .legend-map .lg {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12.5px;
+  margin-bottom: 5px;
+  color: var(--ink-2);
+}
+.admin-root .dash-root .legend-map .lg:last-child {
+  margin-bottom: 0;
+}
+.admin-root .dash-root .legend-map .cd {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+
+/* On-map "Draw area" control: bottom-right so it clears the status pill
+   (top-left), the truncation note (top-right), and the legend (bottom-left). */
+.admin-root .dash-root .draw-ctrl {
+  bottom: 12px;
+  right: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--ink-2);
+  background: var(--elevated);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r);
+  box-shadow: 0 1px 3px rgba(20, 24, 36, 0.12);
+  cursor: pointer;
+}
+.admin-root .dash-root .draw-ctrl svg {
+  width: 14px;
+  height: 14px;
+  color: var(--muted);
+}
+.admin-root .dash-root .draw-ctrl:hover {
+  background: var(--line-2);
+}
+.admin-root .dash-root .draw-ctrl.armed {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+.admin-root .dash-root .draw-ctrl.armed svg {
+  color: var(--on-accent);
+}
+/* Top-center banner shown only while drawing; explains the click gesture. */
+.admin-root .dash-root .draw-banner {
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--accent);
+  color: var(--on-accent);
+  border-radius: var(--r);
+  padding: 7px 12px;
+  font-size: 13px;
+  box-shadow: 0 4px 16px rgba(10, 30, 60, 0.25);
+}
+
+/* On-map "Reset view" pill: re-frames the map on the crisis AOI. Stacks above
+   the draw control on the dashboard; sits in the corner on the analysis map. */
+.admin-root .dash-root .map-reset {
+  right: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--ink-2);
+  background: var(--elevated);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r);
+  box-shadow: 0 1px 3px rgba(20, 24, 36, 0.12);
+  cursor: pointer;
+}
+.admin-root .dash-root .map-reset svg {
+  width: 14px;
+  height: 14px;
+  color: var(--muted);
+}
+.admin-root .dash-root .map-reset:hover {
+  background: var(--line-2);
+}
+/* Dashboard: clear the draw control (bottom: 12px, height: 32px). */
+.admin-root .dash-root .mapwrap .map-reset {
+  bottom: 52px;
+}
+/* Analysis map: no draw control beneath it, so sit in the corner. */
+.admin-root .dash-root .ana-map-stage .map-reset {
+  bottom: 12px;
+}
+
+/* Admin maps go dark via the global `invert(1) hue-rotate(180deg)` canvas
+   filter in index.css (raster-brightness-* can only darken, giving washed-out
+   grey). The filter hits every layer, so data-layer dark colours are picked to
+   survive the flip. Deliberately no admin-scoped override. */
+
+/* ===================== LIST VIEW ===================== */
+.admin-root .dash-root .listview {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--panel);
+}
+.admin-root .dash-root .lv-bar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--line-2);
+}
+.admin-root .dash-root .lv-count {
+  font-size: 13px;
+  color: var(--muted);
+}
+.admin-root .dash-root .lv-count b {
+  color: var(--ink);
+  font-weight: 600;
+}
+.admin-root .dash-root .lv-sortstate {
+  margin-left: auto;
+  font-size: 12.5px;
+  color: var(--faint);
+}
+.admin-root .dash-root .lv-sortstate b {
+  color: var(--ink-2);
+  font-weight: 600;
+}
+.admin-root .dash-root .lv-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+.admin-root .dash-root .lv-scroll::-webkit-scrollbar {
+  width: 9px;
+}
+.admin-root .dash-root .lv-scroll::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+  border-radius: 9px;
+  border: 2px solid var(--panel);
+}
+.admin-root .dash-root .lv-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  table-layout: fixed;
+}
+.admin-root .dash-root .lv-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--bg-sub);
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  padding: 11px 16px;
+  white-space: nowrap;
+}
+.admin-root .dash-root .lv-table .cw-id {
+  width: 92px;
+}
+.admin-root .dash-root .lv-table .cw-dmg {
+  width: 124px;
+}
+.admin-root .dash-root .lv-table .cw-bld {
+  width: 188px;
+}
+.admin-root .dash-root .lv-table .cw-type {
+  width: 148px;
+}
+.admin-root .dash-root .lv-table .cw-when {
+  width: 138px;
+}
+.admin-root .dash-root .lv-table .cw-loc {
+  width: 200px;
+}
+.admin-root .dash-root .lv-table tbody td {
+  padding: 11px 16px;
+  vertical-align: top;
+  border-bottom: 1px solid var(--line-2);
+}
+.admin-root .dash-root .lv-table tbody tr {
+  cursor: pointer;
+}
+.admin-root .dash-root .lv-table tbody tr:hover td {
+  background: var(--bg-sub);
+}
+.admin-root .dash-root .lv-table tbody tr.sel td {
+  background: var(--blue-50);
+}
+.admin-root .dash-root .lv-table tbody tr.sev-complete td:first-child {
+  box-shadow: inset 4px 0 0 var(--complete);
+}
+.admin-root .dash-root .lv-table tbody tr.sev-partial td:first-child {
+  box-shadow: inset 4px 0 0 var(--partial);
+}
+.admin-root .dash-root .lv-table tbody tr.sev-minimal td:first-child {
+  box-shadow: inset 4px 0 0 var(--minimal);
+}
+.admin-root .dash-root .lr {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  min-width: 0;
+}
+.admin-root .dash-root .lr-main {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.admin-root .dash-root .lr-id {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: 0.01em;
+  font-family: var(--font-mono);
+}
+.admin-root .dash-root .lr-desc {
+  font-size: 13px;
+  color: var(--ink-2);
+  line-height: 1.35;
+  margin-top: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.admin-root .dash-root .lv-type {
+  color: var(--ink-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-transform: capitalize;
+}
+.admin-root .dash-root .lv-type svg {
+  width: 14px;
+  height: 14px;
+  color: var(--slate);
+  vertical-align: -3px;
+  margin-right: 6px;
+}
+.admin-root .dash-root .lv-when {
+  color: var(--ink-2);
+  white-space: nowrap;
+  font-size: 13.5px;
+}
+/* Report id: a technical handle, so mono fits here. Full uuid on hover. */
+.admin-root .dash-root .lv-id {
+  color: var(--muted);
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+}
+.admin-root .dash-root .lv-bld {
+  color: var(--muted);
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+/* Table cell text that wraps a few lines then ellipsises. Line count is set
+   per column via an inline `-webkit-line-clamp`. */
+.admin-root .dash-root .lv-cell {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-width: 0;
+  color: var(--ink-2);
+  line-height: 1.4;
+  word-break: break-word;
+}
+.admin-root .dash-root .lv-cell.cap {
+  text-transform: capitalize;
+}
+.admin-root .dash-root .lv-empty {
+  color: var(--faint);
+  font-style: italic;
+}
+.admin-root .dash-root .ri-pill {
+  display: inline-block;
+  min-width: 80px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 3px 11px;
+  border-radius: 999px;
+  letter-spacing: 0.02em;
+  color: #fff;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+.admin-root .dash-root .ri-pill.complete {
+  background: var(--complete);
+}
+.admin-root .dash-root .ri-pill.partial {
+  background: var(--partial);
+}
+.admin-root .dash-root .ri-pill.minimal {
+  background: var(--minimal);
+}
+.admin-root .dash-root .lv-foot {
+  flex: 0 0 auto;
+  padding: 9px 14px;
+  border-top: 1px solid var(--line-2);
+  font-size: 11.5px;
+  color: var(--faint);
+  text-align: center;
+}
+
+/* ===================== AI PANEL ===================== */
+.admin-root .dash-root .ai-head {
+  padding: 11px 14px 0;
+  flex: 0 0 auto;
+}
+.admin-root .dash-root .ai-head .ttl-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.admin-root .dash-root .ai-head .ttl {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-weight: 600;
+  font-size: 14px;
+}
+.admin-root .dash-root .ai-head .ttl svg {
+  width: 15px;
+  height: 15px;
+  color: var(--blue);
+}
+.admin-root .dash-root .ai-head .badge {
+  margin-left: auto;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ai);
+  background: var(--ai-bg);
+  border-radius: 4px;
+  padding: 3px 7px;
+}
+.admin-root .dash-root .ai-head .scope {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+.admin-root .dash-root .ai-head .scope .d {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--blue);
+  flex: 0 0 auto;
+}
+.admin-root .dash-root .ai-head .scope b {
+  color: var(--ink-2);
+  font-weight: 600;
+}
+.admin-root .dash-root .seg {
+  display: flex;
+  padding: 10px 14px 0;
+  border-bottom: 1px solid var(--line-2);
+  flex: 0 0 auto;
+}
+/* Scope line below the tabs under Summary/Chat only. A fixed sub-bar outside
+   the scrolling content, so it stays in view without reflowing the tabs. */
+.admin-root .dash-root .scope-strip {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  font-size: 12px;
+  color: var(--muted);
+  border-bottom: 1px solid var(--line-2);
+}
+.admin-root .dash-root .scope-strip .d {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--blue);
+  flex: 0 0 auto;
+}
+.admin-root .dash-root .scope-strip b {
+  color: var(--ink-2);
+  font-weight: 600;
+}
+.admin-root .dash-root .seg button {
+  flex: 1;
+  text-align: center;
+  padding: 7px 4px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  position: relative;
+  cursor: pointer;
+  font-family: inherit;
+}
+.admin-root .dash-root .seg button:hover {
+  color: var(--ink-2);
+}
+.admin-root .dash-root .seg button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.admin-root .dash-root .seg button.on {
+  color: var(--navy);
+}
+.admin-root .dash-root .seg button.on:after {
+  content: "";
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: -1px;
+  height: 2px;
+  background: var(--accent);
+  border-radius: 2px 2px 0 0;
+}
+.admin-root .dash-root .ai-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+.admin-root .dash-root .ai-body::-webkit-scrollbar {
+  width: 7px;
+}
+.admin-root .dash-root .ai-body::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+  border-radius: 7px;
+  border: 2px solid var(--panel);
+}
+
+/* ===================== RESPONSIVE ===================== */
+@media (max-width: 1180px) {
+  .admin-root .dash-root .body {
+    grid-template-columns: 1fr minmax(310px, 400px);
+  }
+  .admin-root .dash-root .panel.left {
+    display: none;
+  }
+}
+@media (max-width: 900px) {
+  .admin-root .dash-root .body {
+    grid-template-columns: 1fr;
+  }
+  .admin-root .dash-root .panel.right {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   ANALYSIS (live impact) page: a single-crisis drill-down reached from the
+   dashboard's "View full analysis" CTA. Header band, the .kpibar ribbon, then
+   a scroll body with the impact map and priority districts. Scoped under
+   `.dash-root` so the dashboard tokens resolve and follow the theme.
+   ========================================================================== */
+
+/* The header + ribbon stay fixed; only `.ana-body` scrolls. */
+.admin-root .dash-root.ana-root {
+  overflow: hidden;
+}
+
+/* ── header band ── */
+.admin-root .dash-root .ana-head {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 18px;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+}
+.admin-root .dash-root .ana-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px 0 9px;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  background: var(--elevated);
+  color: var(--ink-2);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  flex: 0 0 auto;
+  box-shadow: 0 1px 2px rgba(20, 24, 36, 0.05);
+  transition: border-color 120ms ease, color 120ms ease, background 120ms ease;
+}
+.admin-root .dash-root .ana-back:hover {
+  border-color: var(--slate);
+  color: var(--ink);
+  background: var(--line-2);
+}
+.admin-root .dash-root .ana-back svg {
+  width: 15px;
+  height: 15px;
+}
+
+/* crisis identity cluster: static read-out, mirrors the dashboard .crisis pill */
+.admin-root .dash-root .ana-crisis {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.admin-root .dash-root .ana-crisis .ic {
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  background: var(--c-blue-50);
+  color: var(--blue);
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+}
+.admin-root .dash-root .ana-crisis .ic svg {
+  width: 17px;
+  height: 17px;
+}
+.admin-root .dash-root .ana-crisis .nm {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 1px;
+}
+.admin-root .dash-root .ana-crisis .nm b {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.admin-root .dash-root .ana-crisis .nm .reg {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.admin-root .dash-root .ana-crisis .skel {
+  width: 160px;
+  height: 16px;
+  border-radius: 5px;
+}
+
+.admin-root .dash-root .ana-actions {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  flex: 0 0 auto;
+}
+.admin-root .dash-root .ana-asof {
+  font-size: 12.5px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.admin-root .dash-root .ana-asof b {
+  color: var(--ink-2);
+  font-weight: 700;
+}
+
+/* "Whole crisis" scope chip: marks that the analysis ignores the dashboard's
+   filters and map view. Neutral, not a status colour. */
+.admin-root .dash-root .ana-scope {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--ink-2);
+  background: var(--page);
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  padding: 2px 9px;
+  white-space: nowrap;
+  cursor: help;
+}
+
+/* ── scroll body ── */
+.admin-root .dash-root .ana-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.admin-root .dash-root .ana-body::-webkit-scrollbar {
+  width: 9px;
+}
+.admin-root .dash-root .ana-body::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+  border-radius: 9px;
+  border: 2px solid var(--page);
+}
+
+/* ── two-pane work area: districts rail (left) + tall map (right) ── */
+.admin-root .dash-root .ana-work {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+}
+
+/* priority-districts rail */
+.admin-root .dash-root .ana-side {
+  flex: 0 0 348px;
+  width: 348px;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--line);
+  background: var(--bg-sub);
+}
+.admin-root .dash-root .ana-side-h {
+  flex: 0 0 auto;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+}
+.admin-root .dash-root .ana-side-h .t {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+.admin-root .dash-root .ana-side-h .meta {
+  margin-top: 3px;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+.admin-root .dash-root .ana-defs {
+  position: relative;
+  display: inline-flex;
+  color: var(--faint);
+  cursor: help;
+}
+.admin-root .dash-root .ana-defs svg {
+  width: 14px;
+  height: 14px;
+}
+.admin-root .dash-root .ana-defs:hover {
+  color: var(--blue);
+}
+
+.admin-root .dash-root .ana-side-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.admin-root .dash-root .ana-side-list::-webkit-scrollbar {
+  width: 9px;
+}
+.admin-root .dash-root .ana-side-list::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+  border-radius: 9px;
+  border: 2px solid var(--bg-sub);
+}
+/* one district = one clickable card */
+.admin-root .dash-root .ana-dcard {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  width: 100%;
+  padding: 11px 12px;
+  text-align: left;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--elevated);
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(20, 24, 36, 0.04);
+  transition: border-color 120ms ease, box-shadow 120ms ease, transform 120ms ease;
+}
+.admin-root .dash-root .ana-dcard:hover {
+  border-color: var(--slate);
+  box-shadow: var(--shadow-1);
+}
+.admin-root .dash-root .ana-dcard.on {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent), var(--shadow-1);
+}
+.admin-root .dash-root .ana-dcard .hd {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+.admin-root .dash-root .ana-dcard .rk {
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  display: grid;
+  place-items: center;
+  background: var(--c-blue-50);
+  color: var(--blue);
+  font-size: 12.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.admin-root .dash-root .ana-dcard.on .rk {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.admin-root .dash-root .ana-dcard .nm {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.25;
+}
+.admin-root .dash-root .ana-dcard .nm .unmapped {
+  color: var(--faint);
+  font-weight: 400;
+  font-size: 12px;
+}
+.admin-root .dash-root .ana-dcard .rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.admin-root .dash-root .ana-dcard .mrow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.admin-root .dash-root .ana-dcard .ml {
+  flex: 0 0 auto;
+  font-size: 12px;
+  color: var(--muted);
+}
+.admin-root .dash-root .ana-dcard .sv {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-2);
+}
+.admin-root .dash-root .ana-dcard .na {
+  font-size: 12px;
+  color: var(--faint);
+}
+
+/* right pane: the map (edge-to-edge) plus the ranked-cell rail */
+.admin-root .dash-root .ana-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+}
+.admin-root .dash-root .ana-mapwrap {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+}
+
+/* ranked-cell rail (right of the map) */
+.admin-root .dash-root .ana-rank {
+  flex: 0 0 232px;
+  width: 232px;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid var(--line);
+  background: var(--bg-sub);
+}
+.admin-root .dash-root .ana-rank-h {
+  flex: 0 0 auto;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+}
+.admin-root .dash-root .ana-rank-h .t {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+.admin-root .dash-root .ana-rank-h .meta {
+  margin-top: 3px;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+.admin-root .dash-root .ana-rank-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.admin-root .dash-root .ana-rank-list::-webkit-scrollbar {
+  width: 9px;
+}
+.admin-root .dash-root .ana-rank-list::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+  border-radius: 9px;
+  border: 2px solid var(--bg-sub);
+}
+.admin-root .dash-root .ana-rank-empty {
+  padding: 14px 8px;
+  font-size: 12.5px;
+  color: var(--faint);
+  line-height: 1.5;
+}
+/* Column header: labels the per-row value (and the cell column) once at the top
+   so the bare numbers below read unambiguously. Mirrors the row's flex columns
+   (20px rank spacer, flexible cell, right-aligned value) so the labels sit over
+   the data they describe. Sticky so it survives a scroll. */
+.admin-root .dash-root .ana-rank-cols {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 2px 7px 6px;
+  position: sticky;
+  top: 0;
+  background: var(--bg-sub);
+  z-index: 1;
+}
+.admin-root .dash-root .ana-rank-cols .i-sp {
+  width: 20px;
+  flex: 0 0 auto;
+}
+.admin-root .dash-root .ana-rank-cols .co-h,
+.admin-root .dash-root .ana-rank-cols .v-h {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--faint);
+  white-space: nowrap;
+}
+.admin-root .dash-root .ana-rank-cols .co-h {
+  flex: 1;
+  min-width: 0;
+}
+.admin-root .dash-root .ana-rank-cols .v-h {
+  flex: 0 0 auto;
+}
+.admin-root .dash-root .ana-rank-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 7px;
+  border-radius: 7px;
+  text-align: left;
+  cursor: pointer;
+  transition: background 110ms ease;
+}
+.admin-root .dash-root .ana-rank-row:hover {
+  background: var(--line-2);
+}
+/* Clicked row mirrors the accent-blue highlight drawn on the map for the same
+   cell, so the list and the map agree on which one is in focus. */
+.admin-root .dash-root .ana-rank-row.on {
+  background: var(--c-blue-50);
+  box-shadow: inset 0 0 0 1px var(--blue);
+}
+.admin-root .dash-root .ana-rank-row.on .co {
+  color: var(--ink-2);
+}
+.admin-root .dash-root .ana-rank-row .i {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  background: var(--c-blue-50);
+  color: var(--blue);
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.admin-root .dash-root .ana-rank-row .co {
+  flex: 1;
+  min-width: 0;
+  font-size: 12.5px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-variant-numeric: tabular-nums;
+}
+.admin-root .dash-root .ana-rank-row .v {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  flex: 0 0 auto;
+}
+
+/* ── impact-map module (fills the right pane, edge-to-edge) ── */
+.admin-root .dash-root .ana-map {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-sub);
+}
+.admin-root .dash-root .ana-map-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+  flex-wrap: wrap;
+}
+.admin-root .dash-root .ana-map-bar .lead {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.admin-root .dash-root .ana-map-bar .hint {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--faint);
+}
+.admin-root .dash-root .ana-map-stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.admin-root .dash-root .ana-map-canvas {
+  position: absolute;
+  inset: 0;
+}
+
+/* "no cells" overlay */
+.admin-root .dash-root .ana-map-empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 24px;
+  font-size: 13.5px;
+  color: var(--muted);
+  background: color-mix(in srgb, var(--page) 78%, transparent);
+  z-index: 4;
+}
+
+/* map overlays: legend + hover tooltip */
+.admin-root .dash-root .ana-ov {
+  position: absolute;
+  background: var(--elevated);
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  box-shadow: var(--shadow-2);
+}
+.admin-root .dash-root .ana-legend {
+  left: 12px;
+  bottom: 12px;
+  padding: 10px 12px;
+  max-width: 244px;
+  font-size: 12px;
+  color: var(--ink-2);
+  z-index: 3;
+}
+.admin-root .dash-root .ana-legend .lt {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 7px;
+}
+.admin-root .dash-root .ana-legend .ramp {
+  display: flex;
+  border-radius: 3px;
+  overflow: hidden;
+}
+.admin-root .dash-root .ana-legend .ramp i {
+  width: 28px;
+  height: 10px;
+  display: block;
+}
+.admin-root .dash-root .ana-legend .ends {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+  color: var(--faint);
+  font-size: 11px;
+}
+.admin-root .dash-root .ana-legend .note {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 8px;
+  color: var(--muted);
+}
+.admin-root .dash-root .ana-legend .note .sw {
+  width: 14px;
+  height: 10px;
+  flex: 0 0 auto;
+  border-radius: 2px;
+}
+.admin-root .dash-root .ana-celltip {
+  padding: 9px 11px;
+  max-width: 244px;
+  pointer-events: none;
+  z-index: 5;
+}
+.admin-root .dash-root .ana-celltip .tip-name {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 5px;
+  max-width: 210px;
+}
+.admin-root .dash-root .ana-celltip .r {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  line-height: 1.7;
+  font-size: 12.5px;
+}
+.admin-root .dash-root .ana-celltip .r .k {
+  color: var(--muted);
+}
+.admin-root .dash-root .ana-celltip .r .v {
+  font-weight: 700;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.admin-root .dash-root .ana-celltip .flag {
+  margin-top: 5px;
+  font-weight: 700;
+  color: var(--partial);
+}
+
+.admin-root .dash-root .ana-empty {
+  padding: 22px 16px;
+  font-size: 14px;
+  color: var(--muted);
+  text-align: center;
+}
+
+/* severe / blocked share meter */
+.admin-root .dash-root .ana-meter {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: flex-end;
+}
+.admin-root .dash-root .ana-meter .track {
+  width: 48px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--line-2);
+  overflow: hidden;
+  flex: 0 0 auto;
+}
+.admin-root .dash-root .ana-meter .fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+}
+.admin-root .dash-root .ana-meter .pc {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: var(--ink-2);
+  min-width: 32px;
+  text-align: right;
+}
+
+/* ── state cards (loading / error / empty); sit inside the padded .ana-body ── */
+.admin-root .dash-root .ana-state {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--elevated);
+  box-shadow: var(--shadow-1);
+  padding: 44px 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+  color: var(--muted);
+}
+.admin-root .dash-root .ana-state .h {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.admin-root .dash-root .ana-state .sub {
+  font-size: 14px;
+  max-width: 460px;
+  line-height: 1.55;
+}
+.admin-root .dash-root .ana-state.is-error .h {
+  color: var(--c-danger);
+}
+
+/* ── loading skeleton: mirrors the KPI ribbon + work area so computed
+   content swaps in place. ── */
+.admin-root .dash-root .ana-sk-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 11px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--elevated);
+}
+.admin-root .dash-root .ana-sk-card .r1 {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.admin-root .dash-root .ana-sk-card .sq {
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  flex: 0 0 auto;
+}
+/* map panel: a faint map-like mesh, a slow shimmer sweep, and a centered
+   elevated status card carrying the spinner + staged pipeline dots. */
+.admin-root .dash-root .ana-sk-map {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  overflow: hidden;
+  background-color: var(--bg-sub);
+  background-image: linear-gradient(var(--line-2) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line-2) 1px, transparent 1px);
+  background-size: 30px 30px;
+}
+.admin-root .dash-root .ana-sk-map::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(100deg, transparent 30%, var(--map-scrim) 50%, transparent 70%);
+  background-size: 220% 100%;
+  animation: admin-shimmer 1.8s ease-in-out infinite;
+}
+/* The compute card: easing percentage, progress bar and a vertical pipeline
+   stepper. Accent matches the dashboard's blue loading language (calc-bar). */
+.admin-root .dash-root .ana-compute {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: min(340px, 86%);
+  padding: 22px 24px 20px;
+  border-radius: 14px;
+  background: var(--elevated);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-2);
+}
+.admin-root .dash-root .ana-compute-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.admin-root .dash-root .ana-compute-head .pct {
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.admin-root .dash-root .ana-compute-head .ti {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.admin-root .dash-root .ana-compute-head .t {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.admin-root .dash-root .ana-compute-head .eta {
+  font-size: 12px;
+  color: var(--muted);
+}
+.admin-root .dash-root .ana-compute-bar {
+  position: relative;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--line-2);
+  overflow: hidden;
+}
+.admin-root .dash-root .ana-compute-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--blue), var(--accent));
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.admin-root .dash-root .ana-compute-bar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+  background-size: 40% 100%;
+  background-repeat: no-repeat;
+  animation: calc-sweep 1.3s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+:root[data-theme="dark"] .admin-root .dash-root .ana-compute-bar::after {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.16), transparent);
+  background-size: 40% 100%;
+  background-repeat: no-repeat;
+}
+.admin-root .dash-root .ana-compute-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.admin-root .dash-root .ana-compute-steps .cs {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--faint);
+  transition: color 0.3s ease;
+}
+.admin-root .dash-root .ana-compute-steps .cs .dot {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  border: 2px solid var(--line-strong);
+  color: #fff;
+  transition: all 0.3s ease;
+}
+.admin-root .dash-root .ana-compute-steps .cs .dot i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--line-strong);
+  transition: background 0.3s ease;
+}
+.admin-root .dash-root .ana-compute-steps .cs .dot svg {
+  width: 12px;
+  height: 12px;
+}
+.admin-root .dash-root .ana-compute-steps .cs.is-active {
+  color: var(--ink);
+}
+.admin-root .dash-root .ana-compute-steps .cs.is-active .dot {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 0 rgba(0, 110, 182, 0.5);
+  animation: ana-compute-ring 1.4s ease-out infinite;
+}
+.admin-root .dash-root .ana-compute-steps .cs.is-active .dot i {
+  background: var(--accent);
+  animation: admin-pulse-soft 1.2s ease-in-out infinite;
+}
+.admin-root .dash-root .ana-compute-steps .cs.is-done {
+  color: var(--muted);
+}
+.admin-root .dash-root .ana-compute-steps .cs.is-done .dot {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+@keyframes ana-compute-ring {
+  0% {
+    box-shadow: 0 0 0 0 rgba(0, 110, 182, 0.45);
+  }
+  70% {
+    box-shadow: 0 0 0 7px rgba(0, 110, 182, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(0, 110, 182, 0);
+  }
+}
+
+/* ───────────────────────────────────────────────────────────────────────
+   Onboarding: the adaptive guide band plus the coachmark tour. Scoped under
+   .dash-root so it inherits the dashboard's semantic vars and dark mode.
+   ─────────────────────────────────────────────────────────────────────── */
+.admin-root .dash-root .ob-panel {
+  flex: 0 0 auto;
+  border-bottom: 1px solid var(--line);
+  background: var(--c-blue-50);
+  padding: 13px 16px 15px;
+}
+.admin-root .dash-root .ob-panel.is-collapsed {
+  padding: 13px 16px;
+}
+.admin-root .dash-root .ob-head {
+  display: flex;
+  /* Top-anchored so the icon and badge don't jump when the list expands. */
+  align-items: flex-start;
+  gap: 12px;
+}
+.admin-root .dash-root .ob-spark {
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: var(--c-blue-700);
+  color: #fff;
+}
+.admin-root .dash-root .ob-spark svg {
+  width: 17px;
+  height: 17px;
+}
+.admin-root .dash-root .ob-headtext {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.admin-root .dash-root .ob-headtext h2 {
+  margin: 0;
+  font-size: 14.5px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.admin-root .dash-root .ob-headtext p {
+  margin: 2px 0 0;
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--muted);
+}
+.admin-root .dash-root .ob-progress {
+  flex: 0 0 auto;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--c-blue-800);
+  background: var(--c-card);
+  border: 1px solid var(--c-blue-200);
+  border-radius: 999px;
+  padding: 3px 10px;
+  white-space: nowrap;
+}
+.admin-root .dash-root .ob-progress.done {
+  color: var(--c-safe);
+  background: var(--c-safe-bg);
+  border-color: var(--c-safe);
+}
+/* Completion card shown once the Explore checklist is fully ticked. Green
+   tint so it reads as a closing "done" beat rather than another task. */
+.admin-root .dash-root .ob-panel.is-done {
+  background: var(--c-safe-bg);
+  border-bottom-color: var(--c-safe);
+}
+.admin-root .dash-root .ob-spark.is-done {
+  background: var(--c-safe);
+}
+.admin-root .dash-root .ob-spark.is-done svg {
+  width: 18px;
+  height: 18px;
+}
+.admin-root .dash-root .ob-done-btn {
+  flex: 0 0 auto;
+  padding: 7px 15px;
+  font-size: 12.5px;
+}
+.admin-root .dash-root .ob-collapse {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  border: 1px solid transparent;
+}
+.admin-root .dash-root .ob-collapse:hover {
+  background: var(--c-card);
+  border-color: var(--line);
+}
+.admin-root .dash-root .ob-collapse svg {
+  width: 16px;
+  height: 16px;
+}
+.admin-root .dash-root .ob-list {
+  list-style: none;
+  margin: 12px 0 0;
+  /* align the items under the head text, past the 30px spark + 12px gap */
+  padding: 0 0 0 42px;
+  display: grid;
+  gap: 7px;
+}
+.admin-root .dash-root .ob-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 11px;
+  border-radius: 7px;
+  background: var(--c-card);
+  border: 1px solid var(--line);
+}
+.admin-root .dash-root .ob-item.done {
+  background: transparent;
+  border-color: transparent;
+}
+.admin-root .dash-root .ob-check {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 1.6px solid var(--line-strong);
+  display: grid;
+  place-items: center;
+  color: #fff;
+}
+.admin-root .dash-root .ob-check.done {
+  background: var(--c-safe);
+  border-color: var(--c-safe);
+}
+.admin-root .dash-root .ob-check svg {
+  width: 11px;
+  height: 11px;
+}
+.admin-root .dash-root .ob-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.admin-root .dash-root .ob-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 550;
+  color: var(--ink);
+}
+.admin-root .dash-root .ob-item.done .ob-label {
+  color: var(--muted);
+}
+.admin-root .dash-root .ob-hint {
+  font-size: 11.5px;
+  color: var(--muted);
+}
+.admin-root .dash-root .ob-tag {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--faint);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+.admin-root .dash-root .ob-act {
+  flex: 0 0 auto;
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+/* coachmark tour overlay */
+.admin-root .tour-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 4000;
+  /* The coachmark positions from getBoundingClientRect (viewport coordinates),
+     so counter-zoom cancels `.admin-root`'s `zoom` (cumulative = 1) to keep the
+     spotlight aligned with its target. */
+  zoom: calc(1 / var(--root-zoom));
+}
+.admin-root .tour-overlay.is-blank {
+  background: rgba(2, 8, 20, 0.55);
+}
+.admin-root .tour-spot {
+  position: fixed;
+  border-radius: 10px;
+  box-shadow: 0 0 0 9999px rgba(2, 8, 20, 0.55);
+  outline: 2px solid var(--c-blue-500);
+  pointer-events: none;
+  transition: top 0.2s ease, left 0.2s ease, width 0.2s ease, height 0.2s ease;
+}
+.admin-root .tour-card {
+  position: fixed;
+  z-index: 4001;
+  background: var(--c-card);
+  border: 1px solid var(--c-line);
+  border-radius: 12px;
+  box-shadow: 0 14px 38px rgba(2, 8, 20, 0.32);
+  padding: 15px 16px 14px;
+  animation: tour-card-in 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes tour-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.admin-root .tour-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 7px;
+}
+.admin-root .tour-count {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0;
+  color: var(--c-ink-3);
+}
+.admin-root .tour-x {
+  width: 26px;
+  height: 26px;
+  /* Explicit UA button reset: the Crises chapter mounts outside `.dash-root`
+     and misses its global button reset. */
+  border: 0;
+  padding: 0;
+  background: none;
+  border-radius: 7px;
+  color: var(--c-ink-4);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  transition: background 0.14s ease, color 0.14s ease;
+}
+.admin-root .tour-x svg {
+  width: 15px;
+  height: 15px;
+}
+.admin-root .tour-x:hover {
+  background: var(--c-card-2);
+  color: var(--c-ink-2);
+}
+.admin-root .tour-title {
+  margin: 0 0 5px;
+  font-size: 15.5px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  color: var(--c-ink);
+}
+.admin-root .tour-body {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--c-ink-2);
+}
+.admin-root .tour-dots {
+  display: flex;
+  gap: 5px;
+  margin: 13px 0 12px;
+}
+.admin-root .tour-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--c-line);
+  transition: width 0.18s ease, background 0.18s ease;
+}
+.admin-root .tour-dot.on {
+  width: 16px;
+  background: var(--c-blue-600);
+}
+.admin-root .tour-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.admin-root .tour-skip {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--c-ink-3);
+  /* Explicit UA button reset, same reason as .tour-x. */
+  border: 0;
+  background: none;
+  padding: 7px 11px;
+  border-radius: 8px;
+  transition: background 0.14s ease, color 0.14s ease;
+}
+.admin-root .tour-skip:hover {
+  background: var(--c-card-2);
+  color: var(--c-ink);
+}
+.admin-root .tour-nav {
+  display: flex;
+  gap: 8px;
+}
+.admin-root .tour-nav .btn {
+  padding: 8px 16px;
+  font-size: 13px;
+}
+
+/* Accent above the title: chapter label / "Live demo". */
+.admin-root .tour-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--c-blue-700);
+  background: var(--c-blue-50);
+  border-radius: 6px;
+  padding: 3px 9px;
+  margin-bottom: 9px;
+}
+
+/* Slim progress bar shown instead of dots when a chapter has many steps. */
+.admin-root .tour-bar {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--c-line);
+  overflow: hidden;
+  margin: 13px 0 12px;
+}
+.admin-root .tour-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--c-blue-600);
+  transition: width 0.26s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Freeform (live-demo) steps: no spotlight cutout, so the whole dashboard
+   stays visible while it animates. A soft floor keeps the bottom-pinned card
+   legible; a blue ring marks it as a demo. */
+.admin-root .tour-overlay.is-freeform {
+  background: linear-gradient(to top, rgba(2, 8, 20, 0.22), rgba(2, 8, 20, 0) 24%);
+}
+.admin-root .tour-overlay.is-freeform .tour-card {
+  border-color: var(--c-blue-500);
+  box-shadow: 0 14px 40px rgba(2, 8, 20, 0.42), 0 0 0 1px var(--c-blue-500);
+}
+
+/* Ring drawn around the control a freeform demo just actuated (e.g. the
+   filter bar). No scrim, so the whole dashboard stays visible while the boxed
+   control is clearly called out; a soft pulse draws the eye to it. */
+.admin-root .tour-ring {
+  position: fixed;
+  border-radius: 10px;
+  outline: 2px solid var(--c-blue-500);
+  background: rgba(37, 99, 235, 0.06);
+  pointer-events: none;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.16);
+  transition: top 0.2s ease, left 0.2s ease, width 0.2s ease, height 0.2s ease;
+  animation: tour-ring-pulse 1.6s ease-in-out infinite;
+}
+@keyframes tour-ring-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.16);
+  }
+  50% {
+    box-shadow: 0 0 0 7px rgba(37, 99, 235, 0.06);
+  }
+}
+
+/* ===================================================================
+   First-run welcome splash: full-screen card on first login, ahead of the
+   two guided chapters. Sits above the coachmark overlay.
+   =================================================================== */
+.admin-root .welcome-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 4100;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(2, 8, 20, 0.62);
+  backdrop-filter: blur(3px);
+  animation: welcome-fade 0.24s ease;
+}
+@keyframes welcome-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.admin-root .welcome-card {
+  width: min(560px, 100%);
+  background: var(--c-card);
+  border: 1px solid var(--c-line);
+  border-radius: 16px;
+  box-shadow: 0 24px 64px rgba(2, 8, 20, 0.4);
+  padding: 32px 34px 24px;
+  animation: welcome-rise 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes welcome-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.admin-root .welcome-mark {
+  display: inline-grid;
+  place-items: center;
+  margin-bottom: 16px;
+}
+.admin-root .welcome-mark img {
+  display: block;
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+}
+.admin-root .welcome-eyebrow {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--c-blue-700);
+  margin-bottom: 8px;
+}
+.admin-root .welcome-title {
+  margin: 0 0 8px;
+  font-size: 23px;
+  font-weight: 680;
+  letter-spacing: -0.02em;
+  color: var(--c-ink);
+}
+.admin-root .welcome-sub {
+  margin: 0 0 18px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--c-ink-2);
+}
+.admin-root .welcome-chapters {
+  list-style: none;
+  margin: 0 0 22px;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+  text-align: left;
+}
+.admin-root .welcome-chapter {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 13px 15px;
+  background: var(--c-card-2);
+  border: 1px solid var(--c-line);
+  border-radius: 11px;
+}
+.admin-root .welcome-chapter-num {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--c-blue-50);
+  color: var(--c-blue-700);
+  font-size: 12.5px;
+  font-weight: 700;
+}
+.admin-root .welcome-chapter-text {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--c-ink-2);
+}
+.admin-root .welcome-chapter-text b {
+  display: block;
+  margin-bottom: 1px;
+  font-size: 13.5px;
+  font-weight: 640;
+  color: var(--c-ink);
+}
+/* Between-chapters interlude: a completed chapter row (green tick) and the
+   next chapter flagged with a brand ring. */
+.admin-root .welcome-chapter.is-done .welcome-chapter-num {
+  background: var(--c-safe-bg);
+  color: var(--c-safe);
+}
+.admin-root .welcome-chapter.is-done .welcome-chapter-num svg {
+  width: 14px;
+  height: 14px;
+}
+.admin-root .welcome-chapter.is-next {
+  border-color: var(--c-blue-700);
+  box-shadow: 0 0 0 3px var(--c-blue-100);
+}
+/* Success tick at the top of the "Chapter 1 complete" interlude card. */
+.admin-root .interlude-check {
+  display: inline-grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  margin-bottom: 16px;
+  border-radius: 50%;
+  background: var(--c-safe-bg);
+  color: var(--c-safe);
+}
+.admin-root .interlude-check svg {
+  width: 26px;
+  height: 26px;
+}
+.admin-root .welcome-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+}
+.admin-root .welcome-actions .btn {
+  min-width: 168px;
+  padding: 10px 20px;
+  font-size: 13.5px;
+}
+.admin-root .welcome-foot {
+  margin: 16px 0 0;
+  font-size: 11.5px;
+  color: var(--c-ink-4);
+  text-align: center;
+}
+.admin-root .welcome-foot b {
+  color: var(--c-ink-3);
+  font-weight: 600;
+}

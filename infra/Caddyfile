@@ -1,0 +1,38 @@
+# Single-origin reverse proxy, so the browser needs no CORS and a SameSite=Lax
+# refresh cookie works:
+#   /            PWA static build (SPA fallback to index.html)
+#   /api/*       FastAPI (prefix stripped)
+#   /supabase/*  Supabase Kong (prefix stripped)
+#
+# SITE_ADDRESS=:80 behind ngrok (ngrok terminates TLS), or a domain name for
+# Caddy auto-TLS on :443.
+
+{$SITE_ADDRESS} {
+	encode gzip zstd
+
+	handle_path /api/* {
+		reverse_proxy {$API_UPSTREAM}
+	}
+
+	handle_path /supabase/* {
+		# route runs directives in written order, so the PostgREST guard is
+		# checked before the proxy.
+		route {
+			# PostgREST exposes raw table rows, bypassing the public schemas'
+			# field stripping (photo_exif_gps, client_id, route_description). The
+			# PWA never calls it. 404 so the endpoint isn't confirmed to exist.
+			@postgrest path /rest/v1 /rest/v1/*
+			respond @postgrest 404
+
+			reverse_proxy {$SUPABASE_UPSTREAM}
+		}
+	}
+
+	# PWA build. path.html lets /legal/privacy-policy resolve without the
+	# extension; anything else falls back to the SPA root.
+	handle {
+		root * {$PWA_DIST}
+		try_files {path} {path}.html /index.html
+		file_server
+	}
+}

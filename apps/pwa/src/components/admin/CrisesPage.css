@@ -1,0 +1,298 @@
+/* Crises page styling. Every selector is nested under `.crises-root`, so it
+ * outranks the base `.admin-root .crises-*` rules and only applies here. */
+
+/* Fills the admin shell so the grid below gets a proper flex height. */
+.admin-root .crises-root {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  /* Match the dashboard's 14px base (the admin shell base is 15px). */
+  font-size: 14px;
+}
+
+/* 1: list on the LEFT. The shell grid is in DOM order [canvas, rail]; flip the
+ * track widths and pull the rail first with `order`. */
+.admin-root .crises-root .crises-shell {
+  grid-template-columns: var(--c-rail-w) minmax(0, 1fr);
+  background: var(--crises-canvas);
+}
+.admin-root .crises-root .crises-shell > .crises-rail {
+  order: -1;
+}
+
+/* Hard ink divider between the rail and the beige work canvas. */
+.admin-root .crises-root .crises-rail {
+  border-inline-start: none;
+  border-inline-end: 1px solid var(--c-ink);
+}
+
+/* Stable gutter so opening a long status group doesn't add a scrollbar and
+ * nudge every card sideways. */
+.admin-root .crises-root .rail-body {
+  scrollbar-gutter: stable;
+}
+
+/* "+ New Crisis": full-width CTA under the rail header. */
+.admin-root .crises-root .crises-new-crisis {
+  width: 100%;
+  margin-top: 10px;
+  padding: 8px 14px;
+  font-size: 13px;
+}
+
+/* 2: single-column create / edit form. Collapse the 12-col grid to one track
+ * and cap it at a reading measure (~760px); the footer action bar sits a touch
+ * wider so Create/Save stays anchored to the panel. */
+.admin-root .crises-root .crisis-grid {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 18px;
+  max-width: 840px;
+  margin-inline: auto;
+}
+.admin-root .crises-root .crisis-grid > .section-block[data-span="6"],
+.admin-root .crises-root .crisis-grid > .section-block[data-span="12"],
+.admin-root .crises-root .crisis-grid > [data-span="6"],
+.admin-root .crises-root .crisis-grid > [data-span="12"] {
+  grid-column: 1 / -1;
+}
+
+/* 3: crisis-list cards lead with a type icon in a small rounded tile. */
+.admin-root .crises-root .crises-nav-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-line);
+  display: grid;
+  place-items: center;
+  color: var(--c-ink-3);
+}
+.admin-root .crises-root .crises-nav-icon.on {
+  background: var(--c-blue-50);
+  border-color: var(--c-blue-200);
+  color: var(--c-blue-700);
+}
+.admin-root .crises-root .crises-nav-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* 4: status-strip colours. `is-warn` (yellow) and `is-muted` (grey) extend the
+ * base done/active/failed set to track the real crisis state. */
+.admin-root .crises-root .status-cell.is-warn {
+  background: var(--c-warn-bg);
+  border-color: var(--c-warn-bg);
+}
+.admin-root .crises-root .status-cell.is-warn .step-num,
+.admin-root .crises-root .status-cell.is-warn .step-sub,
+.admin-root .crises-root .status-cell.is-warn .step-title {
+  color: var(--c-warn);
+}
+.admin-root .crises-root .status-cell.is-warn .step-glyph {
+  background: var(--c-warn);
+  color: #fff;
+}
+.admin-root .crises-root .status-cell.is-muted {
+  background: var(--c-line-2);
+  border-color: var(--c-line);
+}
+.admin-root .crises-root .status-cell.is-muted .step-num,
+.admin-root .crises-root .status-cell.is-muted .step-sub,
+.admin-root .crises-root .status-cell.is-muted .step-title {
+  color: var(--c-ink-3);
+}
+.admin-root .crises-root .status-cell.is-muted .step-glyph {
+  background: var(--c-ink-4);
+  color: #fff;
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+ * 5: surface and depth. Crises-scoped tokens (dark mode redefines them below):
+ *
+ *   --crises-card      : raised section / display surface
+ *   --crises-well      : recessed input fill
+ *   --crises-edge      : card border
+ *   --crises-shadow    : drop shadow lifting a card off the canvas
+ *   --crises-shadow-sm : lighter shadow for chips / list tiles
+ *   --crises-rail      : left-rail surface
+ *
+ * `--c-card` is also re-pointed in this subtree so the TSX's inline
+ * `var(--c-card)` surfaces pick up the warm tone instead of pure white. */
+.admin-root .crises-root {
+  --crises-card: #fdfcf8;
+  --crises-well: #f4f2ea;
+  --crises-edge: #e0ddd1;
+  --crises-edge-strong: #d3cfbf;
+  --crises-shadow: 0 1px 2px rgba(58, 50, 33, 0.05), 0 4px 14px rgba(58, 50, 33, 0.06);
+  --crises-shadow-sm: 0 1px 2px rgba(58, 50, 33, 0.05);
+  --crises-rail: #f3f0e7;
+  /* Warm beige canvas so the near-white cards lift off it. */
+  --crises-canvas: #ece3d0;
+  --c-card: #fdfcf8;
+}
+:root[data-theme="dark"] .admin-root .crises-root {
+  /* Dark: softer shadow and a well one notch below the card. */
+  --crises-card: #1a2029;
+  --crises-well: #11161d;
+  --crises-edge: #2f3744;
+  --crises-edge-strong: #3a4452;
+  --crises-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 6px 18px rgba(0, 0, 0, 0.32);
+  --crises-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --crises-rail: #12171e;
+  /* Light-mode only canvas change: keep the base dark bg. */
+  --crises-canvas: #0e1218;
+  /* Must re-point --c-card here too: the light value is set on `.crises-root`
+   * and the base dark theme only sets it on `:root[data-theme]`, so it would
+   * otherwise leak into dark mode (near-white surfaces with near-white text). */
+  --c-card: #1a2029;
+}
+
+/* ── Section cards ── */
+.admin-root .crises-root .section-block {
+  background: var(--crises-card);
+  border-color: var(--crises-edge);
+  border-radius: 14px;
+  box-shadow: var(--crises-shadow);
+  padding: 18px 22px 20px;
+  transition: box-shadow 160ms ease, border-color 160ms ease;
+}
+/* Collapsed cards use the lighter shadow so a column of closed sections stays light. */
+.admin-root .crises-root .section-block.is-collapsed {
+  box-shadow: var(--crises-shadow-sm);
+}
+.admin-root .crises-root .section-block.is-accent {
+  border-color: var(--c-blue-200);
+}
+.admin-root .crises-root .section-block.is-warn {
+  border-color: var(--c-warn);
+}
+.admin-root .crises-root .section-block.is-danger {
+  border-color: var(--c-danger);
+}
+.admin-root .crises-root .section-head {
+  border-bottom-color: var(--crises-edge);
+  padding-bottom: 13px;
+  margin-bottom: 15px;
+}
+
+/* ── Inputs: recessed wells (inset shadow + well fill); focus lifts the field
+ * to the card colour with a blue ring. ── */
+.admin-root .crises-root .field input[type="text"],
+.admin-root .crises-root .field input[type="datetime-local"],
+.admin-root .crises-root .field input[type="number"],
+.admin-root .crises-root .field textarea,
+.admin-root .crises-root .field select,
+.admin-root .crises-root input[type="number"]:not(.field input),
+.admin-root .crises-root input[type="text"]:not(.field input):not(.search-input) {
+  background: var(--crises-well);
+  border-color: var(--crises-edge-strong);
+  box-shadow: inset 0 1px 2px rgba(58, 50, 33, 0.05);
+  transition: background 130ms ease, border-color 130ms ease, box-shadow 130ms ease;
+}
+:root[data-theme="dark"] .admin-root .crises-root .field input[type="text"],
+:root[data-theme="dark"] .admin-root .crises-root .field input[type="datetime-local"],
+:root[data-theme="dark"] .admin-root .crises-root .field input[type="number"],
+:root[data-theme="dark"] .admin-root .crises-root .field textarea,
+:root[data-theme="dark"] .admin-root .crises-root .field select,
+:root[data-theme="dark"] .admin-root .crises-root input[type="number"]:not(.field input),
+:root[data-theme="dark"]
+  .admin-root
+  .crises-root
+  input[type="text"]:not(.field input):not(.search-input) {
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+.admin-root .crises-root .field input:focus,
+.admin-root .crises-root .field textarea:focus,
+.admin-root .crises-root .field select:focus,
+.admin-root .crises-root input[type="number"]:not(.field input):focus,
+.admin-root .crises-root input[type="text"]:not(.field input):not(.search-input):focus {
+  background: var(--c-card);
+  border-color: var(--c-blue-600);
+  box-shadow: 0 0 0 3px var(--c-blue-100);
+}
+.admin-root .crises-root .field input::placeholder,
+.admin-root .crises-root .field textarea::placeholder {
+  color: var(--c-ink-4);
+}
+.admin-root .crises-root .field > label {
+  font-weight: 600;
+  color: var(--c-ink-2);
+}
+
+/* ── Left rail: tinted surface; the sticky header uses the card colour so it
+ * reads as a lid over the scrolling body. ── */
+.admin-root .crises-root .crises-rail {
+  background: var(--crises-rail);
+  border-inline-end-color: var(--crises-edge);
+}
+.admin-root .crises-root .crises-rail .rail-head {
+  background: var(--crises-rail);
+  border-bottom-color: var(--crises-edge);
+}
+.admin-root .crises-root .crises-rail .rail-total {
+  background: var(--c-card);
+  border: 1px solid var(--crises-edge);
+}
+.admin-root .crises-root .rail-body {
+  padding-top: 14px;
+}
+
+/* ── Crumb strip, status rail, page hero: warm card tone + soft divider. ── */
+.admin-root .crises-root .crumb-strip {
+  background: var(--crises-card);
+  border-bottom-color: var(--crises-edge);
+}
+.admin-root .crises-root .status-rail {
+  background: var(--crises-card);
+  border-bottom-color: var(--crises-edge);
+}
+.admin-root .crises-root .page-hero {
+  background: var(--crises-card);
+  border-bottom-color: var(--crises-edge);
+}
+
+/* ── Status stepper cells: warm well for pending, small lift on every cell,
+ * recessed look for muted (archived). ── */
+.admin-root .crises-root .status-cell {
+  background: var(--crises-well);
+  border-color: var(--crises-edge);
+  box-shadow: var(--crises-shadow-sm);
+  border-radius: 11px;
+}
+.admin-root .crises-root .status-cell.is-muted {
+  background: var(--crises-well);
+  border-color: var(--crises-edge);
+  box-shadow: none;
+  opacity: 0.85;
+}
+
+/* ── Metadata list at the foot of the Configuration card: recessed inset
+ * like the input wells. ── */
+.admin-root .crises-root .meta-grid {
+  background: var(--crises-well);
+  border-color: var(--crises-edge);
+  box-shadow: inset 0 1px 2px rgba(58, 50, 33, 0.04);
+}
+:root[data-theme="dark"] .admin-root .crises-root .meta-grid {
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* ── List (navigator) cards: the TSX inlines bg/border, so add the lift and
+ * hover affordance here via the rail body's direct grid children. ── */
+.admin-root .crises-root .rail-body button[title] {
+  box-shadow: var(--crises-shadow-sm);
+}
+.admin-root .crises-root .rail-body button[title]:hover {
+  border-color: var(--c-blue-400) !important;
+}
+.admin-root .crises-root .crises-nav-icon {
+  background: var(--crises-well);
+  border-color: var(--crises-edge);
+}
+
+/* ── Sticky create-panel footer: same measure as the form column so the
+ * buttons sit flush with the fields. ── */
+.admin-root .crises-root .crises-form-actions {
+  max-width: 840px;
+}

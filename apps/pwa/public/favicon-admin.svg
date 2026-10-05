@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="rasid-admin" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#c0394e" />
+      <stop offset="45%" stop-color="#9a1f33" />
+      <stop offset="100%" stop-color="#5e0f1d" />
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="96" ry="96" fill="url(#rasid-admin)" />
+  <text x="256" y="268" text-anchor="middle"
+        font-family="-apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif"
+        font-weight="700" font-size="138" fill="#ffffff">RASID</text>
+  <text x="256" y="346" text-anchor="middle"
+        font-family="-apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif"
+        font-weight="700" font-size="60" letter-spacing="16" fill="#ffffff" opacity="0.92"
+        dx="8">ADMIN</text>
+</svg>

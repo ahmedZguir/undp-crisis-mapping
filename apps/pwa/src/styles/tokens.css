@@ -1,0 +1,164 @@
+/* RASID — Design Tokens */
+
+:root {
+  /* ── Colours ── */
+  --color-primary: #0468b1;
+  --color-primary-dark: #034f8a;
+  --color-secondary: #00b4d8;
+  --color-surface: #ffffff;
+  --color-surface-alt: #f4f6f9;
+  --color-text: #1a1a2e;
+  --color-text-muted: #6b7280;
+  --color-error: #dc2626;
+  --color-success: #16a34a;
+  --color-warning: #d97706;
+  --color-border: #d1d5db;
+
+  /* ── Spacing (4px base scale) ── */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+
+  /* ── Radius ── */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+
+  /* ── Shadows ── */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.12), 0 4px 6px -2px rgba(0, 0, 0, 0.07);
+
+  /* ── Typography ── */
+  --font-family-base: "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-family-arabic: "Noto Sans Arabic", "Segoe UI", system-ui, sans-serif;
+
+  --font-size-xs: 0.75rem; /* 12px */
+  --font-size-sm: 0.875rem; /* 14px */
+  --font-size-md: 1rem; /* 16px */
+  --font-size-lg: 1.125rem; /* 18px */
+  --font-size-xl: 1.25rem; /* 20px */
+  --font-size-2xl: 1.5rem; /* 24px */
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-bold: 700;
+
+  /* ── Design-system palette (--c-* from UI design) ── */
+  --c-blue-900: #0a3a6b;
+  --c-blue-800: #0c4a8a;
+  --c-blue-700: #1670c2;
+  --c-blue-600: #2c8fde;
+  --c-blue-500: #4faaeb;
+  --c-blue-400: #7fc1f0;
+  --c-blue-300: #a9d6f6;
+  --c-blue-200: #cfe7fa;
+  --c-blue-100: #e6f2fc;
+  --c-blue-50: #f3f8fd;
+
+  --c-safe: #2f7d4f;
+  --c-safe-bg: #e6f2ec;
+  --c-warn: #b87914;
+  --c-warn-bg: #faedd1;
+  --c-danger: #b1322a;
+  --c-danger-bg: #f5d9d6;
+
+  --c-ink: #0e1726;
+  --c-ink-2: #25334a;
+  --c-ink-3: #58698a;
+  --c-ink-4: #93a4c0;
+  --c-line: #dde7f3;
+  --c-line-2: #ecf2f9;
+  --c-bg: #ffffff;
+  --c-card: #ffffff;
+  /* Equal to --c-bg: cards separate via borders/shadows, not fill. */
+  --c-surface: #ffffff;
+
+  --c-shadow-2: 0 1px 3px rgba(20, 24, 36, 0.06), 0 6px 18px rgba(20, 24, 36, 0.08);
+  --c-shadow-3: 0 12px 36px rgba(20, 24, 36, 0.16);
+
+  --font-ui: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  /* Cairo is bundled via @fontsource/cairo (src/main.tsx). */
+  --font-arabic: "Cairo", "Noto Sans Arabic", "Segoe UI", "Tahoma", system-ui, sans-serif;
+}
+
+/* ── Dark theme ── (data-theme on <html>, set by src/lib/theme.ts) */
+[data-theme="dark"] {
+  --color-primary: #4faaeb;
+  --color-primary-dark: #2c8fde;
+  --color-secondary: #4dd0e1;
+  --color-surface: #0e1726;
+  --color-surface-alt: #14213a;
+  --color-text: #e6edf6;
+  --color-text-muted: #93a4c0;
+  --color-border: #2a3548;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.55), 0 2px 4px -1px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.6), 0 4px 6px -2px rgba(0, 0, 0, 0.45);
+
+  --c-blue-900: #cfe7fa;
+  --c-blue-800: #a9d6f6;
+  --c-blue-700: #7fc1f0;
+  --c-blue-600: #4faaeb;
+  --c-blue-500: #2c8fde;
+  --c-blue-400: #1670c2;
+  --c-blue-300: #0c4a8a;
+  --c-blue-200: #133353;
+  --c-blue-100: #0f2542;
+  --c-blue-50: #0a1b30;
+
+  --c-safe: #6ec48a;
+  --c-safe-bg: #163322;
+  --c-warn: #e6b34a;
+  --c-warn-bg: #3a2a0e;
+  --c-danger: #e88078;
+  --c-danger-bg: #3a1815;
+
+  --c-ink: #f3f7ff;
+  --c-ink-2: #cfdbef;
+  --c-ink-3: #93a4c0;
+  --c-ink-4: #6b7a96;
+  --c-line: #2a3548;
+  --c-line-2: #1d2738;
+  --c-bg: #0a1220;
+  --c-card: #131c2e;
+  --c-surface: #0a1220;
+
+  --c-shadow-2: 0 1px 3px rgba(0, 0, 0, 0.5), 0 6px 18px rgba(0, 0, 0, 0.4);
+  --c-shadow-3: 0 12px 36px rgba(0, 0, 0, 0.6);
+
+  color-scheme: dark;
+}
+
+/* Arabic glyph coverage; components use var(--font-ui), so this flips the whole tree. */
+:root[dir="rtl"] {
+  --font-ui: var(--font-arabic);
+}
+
+[dir="rtl"] .icon-flip-rtl {
+  transform: scaleX(-1);
+}
+
+/* Global so lazy chunks' Suspense fallbacks can use them before chunk CSS arrives. */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulseDot {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
+}

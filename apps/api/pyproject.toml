@@ -1,0 +1,92 @@
+[project]
+name = "undp-api"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "arq>=0.28.0",
+    "asyncpg>=0.31.0",
+    "av>=17.1.0",
+    "click>=8.3.3",
+    "cryptography>=48.0.0",
+    "duckdb>=1.5.2",
+    "esda>=2.9.0",
+    "fastapi>=0.136.1",
+    "geoalchemy2>=0.19.0",
+    "h3>=4.4.2",
+    "httpx>=0.28.1",
+    "jinja2>=3.1.6",
+    "libpysal>=4.14.1",
+    "mapbox-vector-tile>=2.2.0",
+    "numpy>=2.4.4",
+    "openai>=2.36.0",
+    "overturemaps>=1.0.0",
+    "pydantic>=2.13.3",
+    "pydantic-settings>=2.14.0",
+    "pyjwt[crypto]>=2.12.1",
+    "python-multipart>=0.0.27",
+    "redis>=5.3.1",
+    "scikit-learn>=1.8.0",
+    "shapely>=2.1.2",
+    "slowapi>=0.1.9",
+    "sqlalchemy[asyncio]>=2.0.49",
+    "twilio>=9.10.9",
+    "undp-disastervl-v3",
+    "uvicorn>=0.46.0",
+    "weasyprint>=69.0",
+]
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "pymupdf>=1.27.2.3",
+    "pyright>=1.1.409",
+    "pytest>=9.0.3",
+    "pytest-asyncio>=1.3.0",
+    "rasterio>=1.5.0",
+    "ruff>=0.15.12",
+    "tables>=3.11.1",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "UP", "B", "SIM", "RUF"]
+
+[tool.ruff.lint.per-file-ignores]
+# Translation tables contain non-Latin glyphs (CJK punctuation, Cyrillic
+# letters) that ruff flags as ambiguous; the long-line cap is also too
+# tight for some translated prompts.
+"src/api/channels/whatsapp/template_flow.py" = ["RUF001", "RUF003", "E501"]
+"src/api/channels/whatsapp/messages.py" = ["RUF001"]
+# SMS prompt table — same Arabic-glyph + long-translated-prompt rationale.
+"src/api/channels/sms/strings.py" = ["RUF001", "RUF003", "E501"]
+# IVR spoken-prompt table — same multilingual-glyph + long-prompt rationale.
+"src/api/channels/ivr/strings.py" = ["RUF001", "RUF003", "E501"]
+# The toponym-extraction prompt embeds multilingual few-shot examples
+# (Turkish dotless-ı, Arabic script) and long example-JSON lines; same
+# rationale as the translation tables above.
+"src/api/ai/prompts.py" = ["RUF001", "RUF002", "E501"]
+# The report charts are built almost entirely from long inline-SVG string
+# literals (attribute-dense <path>/<rect>/<text> markup); wrapping them at 100
+# cols mid-attribute hurts readability more than it helps.
+"src/api/analysis/charts/*.py" = ["E501"]
+
+[tool.pyright]
+include = ["src", "tests"]
+extraPaths = ["src"]
+pythonVersion = "3.12"
+typeCheckingMode = "strict"
+venvPath = "."
+venv = ".venv"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+pythonpath = ["src"]
+
+[tool.uv.sources]
+undp-disastervl-v3 = { path = "vendor/undp_disastervl_v3-0.1.8.tar.gz" }

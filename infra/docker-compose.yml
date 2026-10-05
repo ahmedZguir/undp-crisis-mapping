@@ -1,0 +1,101 @@
+# App services: migrations, Redis, API, worker and the Caddy front.
+# Started from the repo-root compose.yaml together with infra/supabase.
+
+x-app: &app
+  build:
+    context: ..
+    dockerfile: infra/Dockerfile.api
+  image: crisis-mapping-api
+  restart: unless-stopped
+  env_file: ../.env
+  environment:
+    # Container addresses; the .env values are for native dev.
+    DATABASE_URL: postgresql+asyncpg://api_service:${API_SERVICE_DB_PASSWORD:?}@db:5432/postgres
+    SUPABASE_URL: http://kong:8000
+    SUPABASE_PUBLIC_URL: ${SITE_URL:-http://localhost:8080}/supabase
+    SUPABASE_JWT_ISSUER: ${SITE_URL:-http://localhost:8080}/supabase/auth/v1
+    REDIS_DSN: redis://redis:6379/0
+    # Caddy serves the API under /api.
+    AUTH_REFRESH_COOKIE_PATH: /api/auth
+  depends_on:
+    migrate:
+      condition: service_completed_successfully
+    redis:
+      condition: service_healthy
+
+services:
+  # Applies pending migrations, then exits.
+  migrate:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.migrate
+    image: crisis-mapping-migrate
+    environment:
+      DB_URL: postgresql://postgres:${POSTGRES_PASSWORD:?}@db:5432/postgres?sslmode=disable
+      API_SERVICE_DB_PASSWORD: ${API_SERVICE_DB_PASSWORD:?}
+    depends_on:
+      # Migrations reference auth.users and storage.buckets, which these create.
+      auth:
+        condition: service_healthy
+      storage:
+        condition: service_healthy
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      # Loopback only, for a native worker.
+      - 127.0.0.1:${REDIS_PORT:-6379}:6379
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  api:
+    <<: *app
+    # /readyz probes Postgres and Redis.
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/readyz"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 15s
+    # Trust Caddy's forwarded headers so request.base_url is the public URL.
+    command:
+      [
+        "uv", "run", "uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000",
+        "--app-dir", "src", "--proxy-headers", "--forwarded-allow-ips", "*",
+      ]
+
+  worker:
+    <<: *app
+    command: ["uv", "run", "arq", "api.workers.settings.WorkerSettings"]
+
+  # Single origin: the PWA at /, the API at /api, Supabase at /supabase.
+  caddy:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.web
+    image: crisis-mapping-web
+    restart: unless-stopped
+    environment:
+      # :80 for plain http, or a domain name for automatic HTTPS.
+      SITE_ADDRESS: ${SITE_ADDRESS:-:80}
+      API_UPSTREAM: api:8000
+      SUPABASE_UPSTREAM: kong:8000
+      PWA_DIST: /srv/pwa
+    ports:
+      - ${HTTP_PORT:-8080}:80
+      - ${HTTPS_PORT:-8443}:443
+    volumes:
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      api:
+        condition: service_started
+
+volumes:
+  # TLS certificates.
+  caddy-data:
+  caddy-config:

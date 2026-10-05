@@ -1,0 +1,356 @@
+{
+  "version": "7.0",
+  "data_api_version": "3.0",
+  "routing_model": {
+    "PHOTO": ["DESCRIPTION"],
+    "DESCRIPTION": ["DEBRIS"],
+    "DEBRIS": ["INFRA_TYPE"],
+    "INFRA_TYPE": ["CRISIS_NATURE"],
+    "CRISIS_NATURE": ["REVIEW"],
+    "REVIEW": []
+  },
+  "screens": [
+    {
+      "id": "PHOTO",
+      "title": "Add a photo",
+      "data": {},
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "Form",
+            "name": "photo_form",
+            "children": [
+              {
+                "type": "TextHeading",
+                "text": "Add a photo"
+              },
+              {
+                "type": "TextBody",
+                "text": "Photo of the damaged structure."
+              },
+              {
+                "type": "PhotoPicker",
+                "name": "photo",
+                "label": "Tap to capture or upload",
+                "description": "One photo of the damaged building (max 5 MB).",
+                "photo-source": "camera_gallery",
+                "min-uploaded-photos": 1,
+                "max-uploaded-photos": 1,
+                "max-file-size-kb": 5120
+              },
+              {
+                "type": "TextSubheading",
+                "text": "How severe is the damage?"
+              },
+              {
+                "type": "RadioButtonsGroup",
+                "name": "damage_class",
+                "label": "Damage level",
+                "required": true,
+                "data-source": [
+                  { "id": "minimal", "title": "Minimal / No damage", "description": "Structurally sound, only cosmetic or no visible damage." },
+                  { "id": "partial", "title": "Partially damaged", "description": "Repairable, usable with caution." },
+                  { "id": "complete", "title": "Completely damaged", "description": "Structurally unsafe or destroyed." }
+                ]
+              },
+              {
+                "type": "Footer",
+                "label": "Next",
+                "on-click-action": {
+                  "name": "data_exchange",
+                  "payload": {
+                    "step": "photo_uploaded",
+                    "photo": "${form.photo}",
+                    "damage_class": "${form.damage_class}"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "DESCRIPTION",
+      "title": "Describe the building",
+      "data": {
+        "damage_class": { "type": "string", "__example__": "partial" }
+      },
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "Form",
+            "name": "description_form",
+            "children": [
+              {
+                "type": "TextHeading",
+                "text": "Describe the building"
+              },
+              {
+                "type": "TextArea",
+                "name": "infra_description",
+                "label": "Description",
+                "helper-text": "Example: 3-storey school, front wall collapsed, roof partially caved in.",
+                "max-length": 1024,
+                "required": false
+              },
+              {
+                "type": "Footer",
+                "label": "Next",
+                "on-click-action": {
+                  "name": "navigate",
+                  "next": { "type": "screen", "name": "DEBRIS" },
+                  "payload": {
+                    "damage_class": "${data.damage_class}",
+                    "infra_description": "${form.infra_description}"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "DEBRIS",
+      "title": "Debris",
+      "data": {
+        "damage_class": { "type": "string", "__example__": "partial" },
+        "infra_description": { "type": "string", "__example__": "" }
+      },
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "Form",
+            "name": "debris_form",
+            "children": [
+              {
+                "type": "TextHeading",
+                "text": "Is there debris blocking access?"
+              },
+              {
+                "type": "RadioButtonsGroup",
+                "name": "debris",
+                "label": "Debris",
+                "required": true,
+                "data-source": [
+                  { "id": "yes", "title": "Yes" },
+                  { "id": "no", "title": "No" },
+                  { "id": "unknown", "title": "Unknown / I don't know" }
+                ]
+              },
+              {
+                "type": "Footer",
+                "label": "Next",
+                "on-click-action": {
+                  "name": "navigate",
+                  "next": { "type": "screen", "name": "INFRA_TYPE" },
+                  "payload": {
+                    "damage_class": "${data.damage_class}",
+                    "infra_description": "${data.infra_description}",
+                    "debris": "${form.debris}"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "INFRA_TYPE",
+      "title": "Type of infrastructure",
+      "data": {
+        "damage_class": { "type": "string", "__example__": "partial" },
+        "infra_description": { "type": "string", "__example__": "" },
+        "debris": { "type": "string", "__example__": "no" }
+      },
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "Form",
+            "name": "infra_type_form",
+            "children": [
+              {
+                "type": "TextHeading",
+                "text": "What type of infrastructure?"
+              },
+              {
+                "type": "TextBody",
+                "text": "Select all that apply."
+              },
+              {
+                "type": "CheckboxGroup",
+                "name": "infra_type",
+                "label": "Type",
+                "required": true,
+                "min-selected-items": 1,
+                "max-selected-items": 8,
+                "data-source": [
+                  { "id": "residential", "title": "Residential Infrastructure", "description": "Houses and apartments." },
+                  { "id": "commercial", "title": "Commercial Infrastructure", "description": "Markets, malls, shops, hotels, banks." },
+                  { "id": "government", "title": "Government Building", "description": "Courthouses, police, fire stations." },
+                  { "id": "utility", "title": "Utility Infrastructure", "description": "Water pumps, power, waste treatment." },
+                  { "id": "transport", "title": "Transport / Communication", "description": "Roads, bridges, towers, stations." },
+                  { "id": "community", "title": "Community Infrastructure", "description": "Schools, hospitals, public toilets." },
+                  { "id": "public_spaces", "title": "Public Spaces / Recreation", "description": "Stadiums, playgrounds, religious sites." },
+                  { "id": "other", "title": "Other", "description": "Please specify below." }
+                ]
+              },
+              {
+                "type": "TextInput",
+                "name": "infra_type_other",
+                "label": "Other: describe",
+                "input-type": "text",
+                "max-chars": 80,
+                "required": false
+              },
+              {
+                "type": "Footer",
+                "label": "Next",
+                "on-click-action": {
+                  "name": "navigate",
+                  "next": { "type": "screen", "name": "CRISIS_NATURE" },
+                  "payload": {
+                    "damage_class": "${data.damage_class}",
+                    "infra_description": "${data.infra_description}",
+                    "debris": "${data.debris}",
+                    "infra_type": "${form.infra_type}",
+                    "infra_type_other": "${form.infra_type_other}"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "CRISIS_NATURE",
+      "title": "Nature of the crisis",
+      "data": {
+        "damage_class": { "type": "string", "__example__": "partial" },
+        "infra_description": { "type": "string", "__example__": "" },
+        "debris": { "type": "string", "__example__": "no" },
+        "infra_type": { "type": "array", "items": { "type": "string" }, "__example__": [] },
+        "infra_type_other": { "type": "string", "__example__": "" }
+      },
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "Form",
+            "name": "nature_form",
+            "children": [
+              {
+                "type": "TextHeading",
+                "text": "Nature of the crisis"
+              },
+              {
+                "type": "Dropdown",
+                "name": "crisis_nature",
+                "label": "Crisis event",
+                "required": true,
+                "data-source": [
+                  { "id": "Earthquake", "title": "Earthquake" },
+                  { "id": "Flood", "title": "Flood" },
+                  { "id": "Tsunami", "title": "Tsunami" },
+                  { "id": "Hurricane", "title": "Hurricane / Cyclone" },
+                  { "id": "Landslide", "title": "Landslide" },
+                  { "id": "Wildfire", "title": "Wildfire" },
+                  { "id": "Explosion", "title": "Explosion" },
+                  { "id": "Chemical", "title": "Chemical incident" },
+                  { "id": "Conflict", "title": "Conflict" },
+                  { "id": "CivilUnrest", "title": "Civil unrest" },
+                  { "id": "Other", "title": "Other" }
+                ]
+              },
+              {
+                "type": "TextInput",
+                "name": "crisis_nature_other",
+                "label": "Other: describe",
+                "helper-text": "Example: Localized water-supply contamination, refugee influx, etc.",
+                "input-type": "text",
+                "max-chars": 80,
+                "required": false
+              },
+              {
+                "type": "Footer",
+                "label": "Review",
+                "on-click-action": {
+                  "name": "navigate",
+                  "next": { "type": "screen", "name": "REVIEW" },
+                  "payload": {
+                    "damage_class": "${data.damage_class}",
+                    "infra_description": "${data.infra_description}",
+                    "debris": "${data.debris}",
+                    "infra_type": "${data.infra_type}",
+                    "infra_type_other": "${data.infra_type_other}",
+                    "crisis_nature": "${form.crisis_nature}",
+                    "crisis_nature_other": "${form.crisis_nature_other}"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "REVIEW",
+      "title": "Almost done",
+      "terminal": true,
+      "success": true,
+      "data": {
+        "damage_class": { "type": "string", "__example__": "partial" },
+        "infra_description": { "type": "string", "__example__": "" },
+        "debris": { "type": "string", "__example__": "no" },
+        "infra_type": { "type": "array", "items": { "type": "string" }, "__example__": [] },
+        "infra_type_other": { "type": "string", "__example__": "" },
+        "crisis_nature": { "type": "string", "__example__": "Earthquake" },
+        "crisis_nature_other": { "type": "string", "__example__": "" }
+      },
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "TextHeading",
+            "text": "Review your answers"
+          },
+          {
+            "type": "TextBody",
+            "text": "Description: ${data.infra_description}\nDamage: ${data.damage_class}\nDebris: ${data.debris}\nType: ${data.infra_type}\nNature: ${data.crisis_nature}"
+          },
+          {
+            "type": "TextSubheading",
+            "text": "Next step: share the location"
+          },
+          {
+            "type": "TextBody",
+            "text": "After you tap Continue, we'll return to WhatsApp chat and ask you to share the GPS pin of the damaged building. Use the paperclip (📎) → Location to send it."
+          },
+          {
+            "type": "Footer",
+            "label": "Continue to share location",
+            "on-click-action": {
+              "name": "complete",
+              "payload": {
+                "damage_class": "${data.damage_class}",
+                "infra_description": "${data.infra_description}",
+                "debris": "${data.debris}",
+                "infra_type": "${data.infra_type}",
+                "infra_type_other": "${data.infra_type_other}",
+                "crisis_nature": "${data.crisis_nature}",
+                "crisis_nature_other": "${data.crisis_nature_other}"
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+# Applies supabase/migrations with the Supabase CLI, which keeps the migration
+# tracker in sync. psql then sets the API role's password from .env.
+FROM alpine:3 AS cli
+ARG SUPABASE_CLI_VERSION=2.119.0
+ARG TARGETARCH
+RUN wget -qO- "https://github.com/supabase/cli/releases/download/v${SUPABASE_CLI_VERSION}/supabase_linux_${TARGETARCH:-amd64}.tar.gz" \
+    | tar -xz -C /usr/local/bin supabase
+
+# The CLI is linked against glibc, hence the Debian-based image.
+FROM postgres:17
+COPY --from=cli /usr/local/bin/supabase /usr/local/bin/supabase
+WORKDIR /work
+COPY supabase/config.toml supabase/config.toml
+COPY supabase/migrations supabase/migrations
+COPY infra/migrate.sh /usr/local/bin/migrate.sh
+CMD ["sh", "/usr/local/bin/migrate.sh"]

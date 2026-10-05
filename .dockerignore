@@ -1,0 +1,15 @@
+.git
+**/.env
+**/.env.*
+**/node_modules
+**/.venv
+**/__pycache__
+**/.pytest_cache
+**/.ruff_cache
+playground
+.claude
+.playwright-mcp
+apps/pwa/dist
+apps/pwa/android
+apps/pwa/ios
+infra/.pids

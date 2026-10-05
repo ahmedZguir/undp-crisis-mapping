@@ -1,0 +1,14 @@
+# Caddy serving the PWA build. The build reads docs/legal for the privacy page,
+# so it keeps the repo layout.
+FROM node:22-alpine AS build
+RUN corepack enable && corepack prepare pnpm@10.33.2 --activate
+WORKDIR /repo/apps/pwa
+COPY apps/pwa/package.json apps/pwa/pnpm-lock.yaml apps/pwa/pnpm-workspace.yaml ./
+RUN pnpm install --frozen-lockfile
+COPY docs/legal /repo/docs/legal
+COPY apps/pwa ./
+RUN pnpm build
+
+FROM caddy:2-alpine
+COPY infra/Caddyfile /etc/caddy/Caddyfile
+COPY --from=build /repo/apps/pwa/dist /srv/pwa
