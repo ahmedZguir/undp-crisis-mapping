@@ -8,15 +8,55 @@
 
 <p align="center"><b>Community-driven crisis mapping: residents report building damage, coordinators direct the response.</b></p>
 
-RASID, built for the UNDP crisis mapping challenge, lets people affected by a crisis report damage to specific buildings: a photo or a description, a location, and a damage level. Coordinators review incoming reports on a live map in the admin console, manage crises, and direct the response. Everything runs as one Docker Compose stack on a single server.
+<p align="center">
+  <a href="https://rasid.qcri.org">Live demo</a> ·
+  <a href="https://rasid.qcri.org/landing.html">Landing page</a>
+</p>
+
+<p align="center">
+  <a href="#features">Features</a> ·
+  <a href="#project-structure">Structure</a> ·
+  <a href="#quick-start-local-trial">Quick start</a> ·
+  <a href="#deploying-to-a-server">Deploy</a> ·
+  <a href="#optional-features">Optional features</a> ·
+  <a href="#troubleshooting">Troubleshooting</a> ·
+  <a href="#development">Development</a>
+</p>
+
+RASID lets people affected by a crisis report damage to specific buildings in the first hours, and lets coordinators see those reports live and direct the response. It was built for the UNDP Crisis Mapping Challenge by the Humanitarian AI team at the Qatar Computing Research Institute (QCRI). The whole platform is open source and self-hosted: one Docker Compose stack on a single server.
 
 ## Features
 
-- **Citizen web app (PWA):** installable, mobile-first reporting form. Citizens can tap a building on the map or describe the location in words.
-- **Admin console:** crisis setup and lifecycle, live reports map, dashboard, configurable report form, coordinator accounts.
-- **Building footprints:** per-crisis download of building outlines from Overture Maps, so reports attach to real buildings.
-- **Optional channels and AI:** WhatsApp, SMS and voice-call reporting, plus AI assistance. All are off until configured.
-- **Native apps:** Android and iOS shells (Capacitor) in `apps/pwa/android` and `apps/pwa/ios`. This guide covers the web app only.
+### For residents: a damage report in under a minute
+
+- **Guided and multilingual:** the six UN languages (Arabic, Chinese, English, French, Russian, Spanish), with right-to-left layout for Arabic.
+- **Building-level location:** tap your building's footprint on the map, or describe the place in words when there is no pin.
+- **Photo or description:** add a photo, type a description or record a voice note. With AI enabled, the photo suggests a damage level and voice notes are transcribed.
+- **Works offline:** with no signal, the report is queued on the device and sent automatically once a connection returns.
+- **Per-crisis forms:** coordinators add their own survey questions for each crisis.
+- **Many ways in:** the installable web app, plus optional WhatsApp, SMS and voice-call channels that reach the same map, even from a basic phone.
+
+### For coordinators: one operating picture
+
+- **Live dashboard:** reports rolled up by severity over a heatmap, with filtering and search.
+- **Crisis setup:** create a crisis, draw or pick its area, load building footprints from Overture Maps, and choose what the public sees.
+- **Prioritisation:** clustering surfaces the worst-hit areas and likely duplicate reports.
+- **AI briefs (optional):** one-click summaries, findings and recommended actions grounded in the report data, plus a chat over the reports.
+- **Export:** GeoJSON and CSV exports, and photo bundles.
+- **Privacy built in:** consent before reporting, field stripping on public data, and citizen data deletion.
+
+Native Android and iOS shells (Capacitor) live in `apps/pwa/android` and `apps/pwa/ios`. This guide covers the web app only.
+
+## Project structure
+
+```text
+apps/api/              FastAPI backend and background worker
+apps/pwa/              React web app (citizen app and admin console)
+apps/pwa/android, ios  Capacitor native shells (not covered by this guide)
+supabase/migrations/   Database schema, applied automatically on startup
+infra/                 Docker Compose, Dockerfiles, Caddy, secret generator
+docs/legal/            Privacy policy shown to citizens
+```
 
 ## Quick start (local trial)
 
@@ -88,54 +128,41 @@ CORS is open by default. If you restrict it with `CORS_ORIGIN_REGEX`, keep `capa
 
 The core flow (citizen reporting through the web app, the admin console, the map and building footprints) works with none of these. Fill in the settings in `.env`, then run `docker compose up -d`.
 
-| Feature | What it does | `.env` settings | Webhook |
-|---|---|---|---|
-| AI | Damage-level suggestions from photos, photo captions, voice-note transcription, translation, report summaries, coordinator chat over reports | `AI_BASE_URL`, `AI_API_KEY`, and one `AI_*_MODEL` per feature; each feature turns on once its model is set | None |
-| WhatsApp | Citizens report through a guided WhatsApp chat (Meta Cloud API) | `META_WHATSAPP_*` | `https://<domain>/api/whatsapp/webhook/meta` |
-| SMS | Citizens report by text message (sms-gate.app Android gateway) | `SMS_GATEWAY_USERNAME`, `SMS_GATEWAY_PASSWORD`, `SMS_WEBHOOK_SECRET`. Outbound SMS uses SIM slot 2 by default; set `SMS_GATEWAY_SIM=1` on a single-SIM phone | `https://<domain>/api/sms/webhook` |
-| Voice calls | Citizens report through a phone menu (Twilio Voice) | `TWILIO_*`, plus `IVR_PUBLIC_URL=https://<domain>/api` (needed for the Twilio signature check) and `AI_BASE_URL` with `AI_TRANSCRIPTION_MODEL`. Without transcription, calls are only logged | `https://<domain>/api/ivr/voice` |
+| Feature | What it does | Webhook |
+|---|---|---|
+| AI | Damage-level suggestions from photos, captions, voice transcription, translation, summaries and chat over reports | None |
+| WhatsApp | Guided WhatsApp chat (Meta Cloud API) | `/api/whatsapp/webhook/meta` |
+| SMS | Numbered text menus on any phone (sms-gate.app Android gateway) | `/api/sms/webhook` |
+| Voice calls | Spoken report over a phone line (Twilio Voice) | `/api/ivr/voice` |
 
-The AI settings accept any OpenAI-compatible server (for example vLLM); example serving scripts are `infra/serve_small_classifier.sh` and those in `infra/ai_scripts/` (adjust paths for your machine). Webhooks need the public HTTPS deployment described above.
+Settings, all in `.env`:
+
+- **AI:** `AI_BASE_URL`, `AI_API_KEY`, and one `AI_*_MODEL` per feature. Each feature turns on once its model is set.
+- **WhatsApp:** the four `META_WHATSAPP_*` values.
+- **SMS:** `SMS_GATEWAY_USERNAME`, `SMS_GATEWAY_PASSWORD`, `SMS_WEBHOOK_SECRET`. Replies go out on SIM slot 2 by default; set `SMS_GATEWAY_SIM=1` on a single-SIM phone.
+- **Voice calls:** the three `TWILIO_*` values, `IVR_PUBLIC_URL=https://<domain>/api` (for the Twilio signature check), and the AI transcription model (`AI_BASE_URL`, `AI_TRANSCRIPTION_MODEL`). Without transcription, calls are only logged.
+
+Webhook paths are relative to `https://<domain>` and need the public HTTPS deployment above. The AI settings accept any OpenAI-compatible server (for example vLLM); example serving scripts are `infra/serve_small_classifier.sh` and those in `infra/ai_scripts/` (adjust paths for your machine).
 
 **Reference data (optional).** Building-count estimates before a footprint download, and the asset-value and displaced-people estimates, use precomputed world grids built by `build_density_grid.py`, `build_litpop_grid.py` and `build_population_grid.py` in `apps/api/src/api/scripts/` (run from `apps/api/`, for example `uv run python -m api.scripts.build_density_grid`; each script's header has the details). Everything else works without them.
 
-## Operations
+## Data and backups
 
-```bash
-docker compose ps                          # service status
-docker compose logs -f api                 # follow API logs (also: worker, caddy, db, migrate)
-docker compose down                        # stop everything, keep data
-git pull && docker compose up -d --build   # update; new migrations apply automatically
-```
-
-All data (database, uploaded photos, TLS certificates) lives in Docker named volumes. To back up the database:
+All data (database, uploaded photos, TLS certificates) lives in Docker named volumes, so `docker compose down` and updates keep it. To back up the database:
 
 ```bash
 docker compose exec -T db pg_dump -U postgres postgres > backup.sql
 ```
 
-Uploaded photos are in the `storage-data` volume; back it up separately.
+Uploaded photos are in the `storage-data` volume; back it up separately. To update, pull the new code and run `docker compose up -d --build`; new migrations apply automatically.
 
 > **Warning:** `docker compose down -v` deletes the volumes, which permanently erases every report, photo and account. Back up first.
 
-**Ports.** Caddy listens on `HTTP_PORT` (default 8080) and `HTTPS_PORT` (default 8443) on all interfaces and serves the web app at `/`, the API at `/api` and Supabase at `/supabase`. Loopback only: Supabase on `SUPABASE_PORT` (54321), Postgres on `DB_PORT` (54322), Redis on `REDIS_PORT` (6379).
-
 ## Troubleshooting
 
-- **Port already in use:** set `HTTP_PORT`, `HTTPS_PORT`, `SUPABASE_PORT`, `DB_PORT` or `REDIS_PORT` in `.env` to a free port, then `docker compose up -d`.
+- **Port already in use:** the stack uses 8080 and 8443 (web), plus 54321 (Supabase), 54322 (Postgres) and 6379 (Redis) on localhost only. Set `HTTP_PORT`, `HTTPS_PORT`, `SUPABASE_PORT`, `DB_PORT` or `REDIS_PORT` in `.env` to a free port, then run `docker compose up -d`.
 - **A service fails to start:** check `docker compose logs migrate api` for the error.
 - **Start over on a local trial:** `docker compose down -v`, then `docker compose up -d --build`. This erases all data.
-
-## Project structure
-
-```text
-apps/api/              FastAPI backend and background worker
-apps/pwa/              React web app (citizen app and admin console)
-apps/pwa/android, ios  Capacitor native shells (not covered by this guide)
-supabase/migrations/   Database schema, applied automatically on startup
-infra/                 Docker Compose, Dockerfiles, Caddy, secret generator
-docs/legal/            Privacy policy shown to citizens
-```
 
 ## Development
 
