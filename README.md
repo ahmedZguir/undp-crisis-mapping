@@ -1,191 +1,158 @@
-# UNDP
-we need to clean this up.
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/logo-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset=".github/assets/logo-light.svg">
+    <img src=".github/assets/logo-light.svg" alt="RASID Crisis Mapping" width="360">
+  </picture>
+</p>
 
-## What we're building (in 30 seconds)
+<p align="center"><b>Community-driven crisis mapping: residents report building damage, coordinators direct the response.</b></p>
 
-A community-driven crisis mapping platform for UNDP. When a disaster hits — earthquake, flood, conflict, fire — affected residents use it to report damage to specific buildings, and coordinators use it to see the whole picture and direct response.
+RASID, built for the UNDP crisis mapping challenge, lets people affected by a crisis report damage to specific buildings: a photo or a description, a location, and a damage level. Coordinators review incoming reports on a live map in the admin console, manage crises, and direct the response. Everything runs as one Docker Compose stack on a single server.
 
-**Three audiences, one platform:**
-- **Community members submit** reports via a mobile web app (PWA) or WhatsApp — photo + damage class (minimal/partial/complete) + infrastructure type + crisis type + location. Works fully offline; reports queue locally and sync when connectivity returns.
-- **Anyone can browse** a public map and feed of damage in their area, in any of the 6 UN languages. Per-crisis kill switch in case UNDP needs to lock it down for sensitive situations.
-- **UNDP coordinators and field enumerators** access a gated dashboard with full data, filters, per-building history, and exports to CSV / GeoJSON / Shapefile.
+## Features
 
+- **Citizen web app (PWA):** installable, mobile-first reporting form. Citizens can tap a building on the map or describe the location in words.
+- **Admin console:** crisis setup and lifecycle, live reports map, dashboard, configurable report form, coordinator accounts.
+- **Building footprints:** per-crisis download of building outlines from Overture Maps, so reports attach to real buildings.
+- **Optional channels and AI:** WhatsApp, SMS and voice-call reporting, plus AI assistance. All are off until configured.
+- **Native apps:** Android and iOS shells (Capacitor) in `apps/pwa/android` and `apps/pwa/ios`. This guide covers the web app only.
 
-## Repo layout
+## Quick start (local trial)
 
-- `apps/api/` — FastAPI backend (Python 3.12, uv)
-- `apps/pwa/` — Progressive web app (React + TS, Vite, pnpm)
-- `supabase/` — Database schema migrations (source of truth)
-- `infra/` — Docker Compose, Caddy config
-- `docs/` — Architecture, decisions (ADRs), feature briefs
-- `.github/workflows/` — CI
-
-## Prerequisites
-
-Install once on your machine:
-
-- **Node 22** via [nvm](https://github.com/nvm-sh/nvm): `nvm install 22 && nvm alias default 22`
-- **pnpm 10**: `npm install -g pnpm`
-- **uv** (Python tooling): `curl -LsSf https://astral.sh/uv/install.sh | sh`
-- **pre-commit**: `uv tool install pre-commit` (or `pip install pre-commit`)
-
-## First-time setup
-
-After cloning:
+Requirements: Docker Engine (Linux) or Docker Desktop, Docker Compose v2.24 or newer (check with `docker compose version`), about 4 GB of RAM, and internet access for the first build. Deploying to a server also needs Python 3.10 or newer.
 
 ```bash
-# Install pre-commit hooks into your local git
-pre-commit install
-
-# Set up the API
-cd apps/api
-uv sync
-cd ../..
-
-# Set up the PWA
-cd apps/pwa
-pnpm install
-cd ../..
+git clone <repository-url>
+cd undp-crisis-mapping
+cp .env.example .env
+docker compose up -d --build
 ```
 
-That's it. The two `*sync*`/`install` commands materialize each app's dependencies into a local environment.
+The `.env.example` defaults use Supabase's public demo secrets. They are fine on your own machine and must never be used on a server (see [Deploying to a server](#deploying-to-a-server)).
 
-## Day-to-day commands
+The first build takes several minutes. Run `docker compose ps`: the stack is ready when `api` shows `healthy`. The `migrate` service applies the database schema once and exits; `docker compose ps -a` lists it as `Exited (0)`, which is expected.
 
-**Run the API dev server** (from `apps/api/`):
-```bash
-uv run uvicorn api.main:app --reload --app-dir src
-```
-Serves on `http://localhost:8000`. Swagger UI at `/docs`.
+| What | Where |
+|---|---|
+| Citizen app | http://localhost:8080 |
+| Admin console | http://localhost:8080/admin (default login `admin@example.com` / `change-me-now`, set by `ADMIN_EMAIL` / `ADMIN_PASSWORD` in `.env`) |
+| Supabase Studio (database UI) | http://localhost:54321 (user `supabase`, password `DASHBOARD_PASSWORD` from `.env`) |
 
-**Run the PWA dev server** (from `apps/pwa/`):
-```bash
-pnpm dev
-```
-Serves on `http://localhost:5173`.
+## First steps
 
-**Run the API checks** (from `apps/api/`):
-```bash
-uv run ruff check .
-uv run ruff format --check .
-uv run pyright
-uv run pytest
-```
+1. Open the admin console in a desktop browser (at least 1000 px wide) and sign in. A welcome screen offers **Start the walkthrough** or **Skip for now**.
+2. Go to **Crises** and click **New Crisis**. Fill in the name, type, area ("Where it happened": countries, a searched place, a drawn polygon or a GeoJSON upload) and dates, then click **Create crisis**. Loading building data needs an area or at least one country. You can also schedule activation in this form.
+3. Optional: in the crisis's **Building shapes** section, click **Load building data**, then **Yes, load buildings** (or pick **Yes, load now** while creating the crisis). This needs internet and can take several minutes for large areas. Without it, citizens can still report by pin or description, but cannot tap a building.
+4. Click **Activate**, then **Yes, go live**. New crises start inactive and are invisible to citizens until activated.
+5. Open http://localhost:8080 in any browser (it is built for phones), pick the crisis, and submit a report. It appears in the admin console.
+6. Add more coordinators from the **Admins** tab. Public sign-up is disabled.
 
-**Run the PWA checks** (from `apps/pwa/`):
-```bash
-pnpm lint
-pnpm typecheck
-pnpm build
-```
+## Deploying to a server
 
-## Exposing a local stack publicly (Caddy + ngrok)
+**1. Point a domain at the server.** Create a DNS A record for your domain (for example `crisis.example.org`) with the server's IP address, and wait until it resolves (`nslookup crisis.example.org`). Do this before the first start: Caddy requests the TLS certificate when it starts. Ports 80 and 443 must be reachable from the internet.
 
-To put the single-origin front (PWA + `/api` + `/supabase`) behind the ngrok pre-launch gate, run Caddy directly (the VM blocks :80, so use :8090) then point ngrok at it. Adjust `API_UPSTREAM` to wherever the API is listening.
-
-**Caddy** (from `infra/`):
-```bash
-cd infra && SITE_ADDRESS=:8090 API_UPSTREAM=localhost:8012 SUPABASE_UPSTREAM=localhost:54321 PWA_DIST=../apps/pwa/dist caddy run --config Caddyfile
-```
-
-**ngrok** (basic-auth gate from `infra/ngrok-traffic-policy.yml`):
-```bash
-ngrok http --domain=bacon-rotunda-flock.ngrok-free.dev 8090 --traffic-policy-file infra/ngrok-traffic-policy.yml
-```
-
-Requires `pnpm build` first so `apps/pwa/dist` exists.
-
-## Updating the Android APK with a new dist
-
-### One-time toolchain setup (server has no Java)
-
-The Gradle build needs **JDK 21** (Capacitor plugins require 21) and the Android command-line SDK. A fresh server has neither, so install both once. JDK 21 specifically — newer JDKs break the Capacitor Gradle plugin.
+**2. Generate real secrets instead of copying `.env.example`.** Do this before the first `docker compose up`: the database keeps the passwords it was created with.
 
 ```bash
-# JDK 21 (Temurin)
-mkdir -p ~/jdk && cd ~/jdk
-wget https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.7%2B6/OpenJDK21U-jdk_x64_linux_hotspot_21.0.7_6.tar.gz
-tar -xzf OpenJDK21U-jdk_x64_linux_hotspot_21.0.7_6.tar.gz
-
-# Android command-line tools
-mkdir -p ~/Android/Sdk/cmdline-tools && cd ~/Android/Sdk/cmdline-tools
-wget https://dl.google.com/android/repository/commandlinetools-linux-13114758_latest.zip
-unzip commandlinetools-linux-13114758_latest.zip && mv cmdline-tools latest
-
-# Environment (persist to ~/.bashrc so future shells have it)
-echo 'export JAVA_HOME=$HOME/jdk/jdk-21.0.7+6' >> ~/.bashrc
-echo 'export ANDROID_HOME=$HOME/Android/Sdk' >> ~/.bashrc
-echo 'export PATH=$JAVA_HOME/bin:$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools' >> ~/.bashrc
-source ~/.bashrc
-
-# SDK components
-yes | sdkmanager --licenses
-sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0"
+python3 infra/gen_secrets.py
 ```
 
-Verify with `java -version` (should report 21).
+This writes `.env` with fresh secrets and prints the admin password; note it down. It refuses to run if `.env` already exists. If you already ran a local trial on this machine, erase that trial's data with `docker compose down -v` and delete `.env` first.
 
-### Rebuild and copy the APK
-
-To rebuild the sideload APK against the latest PWA build and refresh the package Caddy serves (from the repo root):
+**3. Set the domain in `.env`.** Edit the existing `SITE_URL`, `HTTP_PORT` and `ADMIN_EMAIL` lines, and uncomment `SITE_ADDRESS` and `HTTPS_PORT` in the "Going live on a domain" block, so each key appears once:
 
 ```bash
-cd apps/pwa
-pnpm build
-npx cap sync android
-cd android
-JAVA_HOME=$HOME/jdk/jdk-21.0.7+6 ./gradlew assembleDebug
-cd ../../..
-cp apps/pwa/android/app/build/outputs/apk/debug/app-debug.apk apps/pwa/dist/rasid.apk
+SITE_URL=https://crisis.example.org
+SITE_ADDRESS=crisis.example.org
+HTTP_PORT=80
+HTTPS_PORT=443
+ADMIN_EMAIL=you@your-org.org
 ```
 
-`pnpm build` produces the new `dist/`, `npx cap sync android` copies it into the Android project, `./gradlew assembleDebug` builds the APK (first build ~8 min while Gradle downloads dependencies, then ~30–60s incremental), and the `cp` drops it where Caddy serves it. The download URL is unchanged (`…/rasid.apk`); testers re-download and reinstall over the existing app (same debug keystore, so it updates in place). Full build + handoff details: [docs/native-app-handoff.md](docs/native-app-handoff.md).
+**4. Start the stack.**
 
-## How commits work
-
-Every commit triggers pre-commit hooks (formatters, linters, secret scanner). Three things to know:
-
-1. **Auto-fixers may modify files during commit.** If a hook reformats your code, the commit is rejected and you re-stage:
 ```bash
-   git add .
-   git commit -m "..."   # now passes
+docker compose up -d --build
 ```
-2. **Don't bypass hooks casually.** `git commit --no-verify` exists for emergencies. If you find yourself reaching for it, fix the underlying issue instead.
-3. **CI runs the same checks plus type checking and a full build.** Even if your commit passes locally, CI may fail — usually a missing file or lockfile drift. Fix forward.
 
-## CI
+**5. Sign in** at `https://<domain>/admin` with `ADMIN_EMAIL` and the password printed by `gen_secrets.py`.
 
-Every push and pull request triggers `.github/workflows/ci.yml`:
+To change the admin password later, edit `ADMIN_PASSWORD` in `.env` and run `docker compose up -d`. The API applies it at startup and signs out existing sessions.
 
-- **API job**: ruff lint + format check, pyright, pytest
-- **PWA job**: biome lint, tsc typecheck, build
+Supabase Studio is reachable at `https://<domain>/supabase/` behind the `DASHBOARD_PASSWORD` login, so keep that password strong (`gen_secrets.py` generates one). For day-to-day use, an SSH tunnel is simpler: `ssh -L 54321:localhost:54321 user@server`, then open http://localhost:54321.
 
-Both run in parallel. Results show on GitHub's Actions tab and on the commit/PR page.
+CORS is open by default. If you restrict it with `CORS_ORIGIN_REGEX`, keep `capacitor://localhost` and `https://localhost` in the pattern when the native apps are in use; the web app alone needs nothing.
 
-If CI fails, click the red X → into the failing job → read the logs of the failing step. Same output as if you ran the command locally.
+## Optional features
 
-## Adding dependencies
+The core flow (citizen reporting through the web app, the admin console, the map and building footprints) works with none of these. Fill in the settings in `.env`, then run `docker compose up -d`.
 
-Don't edit `pyproject.toml` or `package.json` deps directly. Use the package managers so lockfiles stay in sync:
+| Feature | What it does | `.env` settings | Webhook |
+|---|---|---|---|
+| AI | Damage-level suggestions from photos, photo captions, voice-note transcription, translation, report summaries, coordinator chat over reports | `AI_BASE_URL`, `AI_API_KEY`, and one `AI_*_MODEL` per feature; each feature turns on once its model is set | None |
+| WhatsApp | Citizens report through a guided WhatsApp chat (Meta Cloud API) | `META_WHATSAPP_*` | `https://<domain>/api/whatsapp/webhook/meta` |
+| SMS | Citizens report by text message (sms-gate.app Android gateway) | `SMS_GATEWAY_USERNAME`, `SMS_GATEWAY_PASSWORD`, `SMS_WEBHOOK_SECRET`. Outbound SMS uses SIM slot 2 by default; set `SMS_GATEWAY_SIM=1` on a single-SIM phone | `https://<domain>/api/sms/webhook` |
+| Voice calls | Citizens report through a phone menu (Twilio Voice) | `TWILIO_*`, plus `IVR_PUBLIC_URL=https://<domain>/api` (needed for the Twilio signature check) and `AI_BASE_URL` with `AI_TRANSCRIPTION_MODEL`. Without transcription, calls are only logged | `https://<domain>/api/ivr/voice` |
 
-- **API**: `uv add <pkg>` (runtime) or `uv add --dev <pkg>` (dev only)
-- **PWA**: `pnpm add <pkg>` (runtime) or `pnpm add -D <pkg>` (dev only)
+The AI settings accept any OpenAI-compatible server (for example vLLM); example serving scripts are `infra/serve_small_classifier.sh` and those in `infra/ai_scripts/` (adjust paths for your machine). Webhooks need the public HTTPS deployment described above.
 
-Commit both the manifest and the lockfile (`uv.lock` / `pnpm-lock.yaml`).
+**Reference data (optional).** Building-count estimates before a footprint download, and the asset-value and displaced-people estimates, use precomputed world grids built by `build_density_grid.py`, `build_litpop_grid.py` and `build_population_grid.py` in `apps/api/src/api/scripts/` (run from `apps/api/`, for example `uv run python -m api.scripts.build_density_grid`; each script's header has the details). Everything else works without them.
+
+## Operations
+
+```bash
+docker compose ps                          # service status
+docker compose logs -f api                 # follow API logs (also: worker, caddy, db, migrate)
+docker compose down                        # stop everything, keep data
+git pull && docker compose up -d --build   # update; new migrations apply automatically
+```
+
+All data (database, uploaded photos, TLS certificates) lives in Docker named volumes. To back up the database:
+
+```bash
+docker compose exec -T db pg_dump -U postgres postgres > backup.sql
+```
+
+Uploaded photos are in the `storage-data` volume; back it up separately.
+
+> **Warning:** `docker compose down -v` deletes the volumes, which permanently erases every report, photo and account. Back up first.
+
+**Ports.** Caddy listens on `HTTP_PORT` (default 8080) and `HTTPS_PORT` (default 8443) on all interfaces and serves the web app at `/`, the API at `/api` and Supabase at `/supabase`. Loopback only: Supabase on `SUPABASE_PORT` (54321), Postgres on `DB_PORT` (54322), Redis on `REDIS_PORT` (6379).
 
 ## Troubleshooting
 
-**Pre-commit hook fails with "executable not found"**: re-run `pre-commit install` from the repo root.
+- **Port already in use:** set `HTTP_PORT`, `HTTPS_PORT`, `SUPABASE_PORT`, `DB_PORT` or `REDIS_PORT` in `.env` to a free port, then `docker compose up -d`.
+- **A service fails to start:** check `docker compose logs migrate api` for the error.
+- **Start over on a local trial:** `docker compose down -v`, then `docker compose up -d --build`. This erases all data.
 
-**`pnpm install --frozen-lockfile` fails in CI**: someone changed `package.json` without committing the new `pnpm-lock.yaml`. Run `pnpm install` locally, commit the lockfile, push.
+## Project structure
 
-**`uv sync` fails in CI**: same idea with `uv.lock`. Run `uv sync` locally, commit, push.
+```text
+apps/api/              FastAPI backend and background worker
+apps/pwa/              React web app (citizen app and admin console)
+apps/pwa/android, ios  Capacitor native shells (not covered by this guide)
+supabase/migrations/   Database schema, applied automatically on startup
+infra/                 Docker Compose, Dockerfiles, Caddy, secret generator
+docs/legal/            Privacy policy shown to citizens
+```
 
-**VS Code shows red squiggles on `from api.main import app`**: select the right Python interpreter (Cmd/Ctrl+Shift+P → "Python: Select Interpreter" → `apps/api/.venv/bin/python`).
+## Development
 
-## Where to look next
+Tech stack: FastAPI (Python 3.12), PostgreSQL with PostGIS via self-hosted Supabase, React with Vite (PWA), Redis with an arq worker, Caddy.
 
-- **Architecture overview**: [docs/tech_stack.md](docs/tech_stack.md)
-- **Why we picked specific approaches**: [docs/decisions/](docs/decisions/)
-- **Feature briefs (in-flight work)**: [docs/briefs/](docs/briefs/)
-- **Agent operating guide**: [CLAUDE.md](CLAUDE.md)
+API (needs uv, plus the WeasyPrint system libraries Pango, Cairo and GDK-PixBuf; see `infra/Dockerfile.api` for Debian package names). Run from the repo root:
+
+```bash
+(cd apps/api && uv sync && uv run pytest -m "not integration and not redis")
+```
+
+Web app (needs Node 22 and pnpm). Run from the repo root:
+
+```bash
+(cd apps/pwa && pnpm install && pnpm test)
+```
+
+Tests marked `integration` and `redis` run against the local stack and are skipped when it is not running. They create and delete data, so never run them against a stack that holds real reports.
+
+Schema changes are new SQL files in `supabase/migrations/`; the `migrate` service applies them on the next `docker compose up`.
