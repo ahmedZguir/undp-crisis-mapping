@@ -9,17 +9,17 @@
 <p align="center"><b>Community-driven crisis mapping: residents report building damage, coordinators direct the response.</b></p>
 
 <p align="center">
-  <a href="https://rasid.qcri.org">Live demo</a> ·
+  <a href="https://rasid.qcri.org">Live demo</a> &nbsp;|&nbsp;
   <a href="https://rasid.qcri.org/landing.html">Landing page</a>
 </p>
 
 <p align="center">
-  <a href="#features">Features</a> ·
-  <a href="#project-structure">Structure</a> ·
-  <a href="#quick-start-local-trial">Quick start</a> ·
-  <a href="#deploying-to-a-server">Deploy</a> ·
-  <a href="#optional-features">Optional features</a> ·
-  <a href="#troubleshooting">Troubleshooting</a> ·
+  <a href="#features">Features</a> &nbsp;|&nbsp;
+  <a href="#project-structure">Structure</a> &nbsp;|&nbsp;
+  <a href="#quick-start-local-trial">Quick start</a> &nbsp;|&nbsp;
+  <a href="#deploying-to-a-server">Deploy</a> &nbsp;|&nbsp;
+  <a href="#optional-features">Optional features</a> &nbsp;|&nbsp;
+  <a href="#troubleshooting">Troubleshooting</a> &nbsp;|&nbsp;
   <a href="#development">Development</a>
 </p>
 
@@ -63,7 +63,7 @@ docs/legal/            Privacy policy shown to citizens
 Requirements: Docker Engine (Linux) or Docker Desktop, Docker Compose v2.24 or newer (check with `docker compose version`), about 4 GB of RAM, and internet access for the first build. Deploying to a server also needs Python 3.10 or newer.
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/ahmedZguir/undp-crisis-mapping.git
 cd undp-crisis-mapping
 cp .env.example .env
 docker compose up -d --build
