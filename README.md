@@ -10,7 +10,8 @@
 
 <p align="center">
   <a href="https://rasid.qcri.org">Live demo</a> &nbsp;|&nbsp;
-  <a href="https://rasid.qcri.org/landing.html">Landing page</a>
+  <a href="https://rasid.qcri.org/landing.html">Landing page</a> &nbsp;|&nbsp;
+  <a href="https://youtu.be/8s3NY10_LBM">Video</a>
 </p>
 
 <p align="center">
